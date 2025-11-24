@@ -30,7 +30,7 @@
     "morgan": "1.10.1",
     "openid-client": "6.8.1",
     "tsx": "4.20.6",
-    "zod": "4.1.12"
+    "zod": "4.1.13"
   },
   "devDependencies": {
     "prettier": "3.6.2"
