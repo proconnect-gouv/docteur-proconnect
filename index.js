@@ -247,6 +247,7 @@ app.post(
 
 app.get(CALLBACK_URL, async (req, res, next) => {
   try {
+    const currentUrl = getCurrentUrl(req);
     if (req.query.error) {
       throw new client.AuthorizationResponseError(
         `${req.query.error} - ${req.query.error_description}`,
@@ -254,7 +255,6 @@ app.get(CALLBACK_URL, async (req, res, next) => {
       );
     }
     const config = await getProviderConfig();
-    const currentUrl = getCurrentUrl(req);
     const tokens = await client.authorizationCodeGrant(
       config,
       currentUrl,
