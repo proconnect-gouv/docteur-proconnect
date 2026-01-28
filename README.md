@@ -15,7 +15,7 @@ This tool is fully configured using environment variables.
 Install the dependencies:
 
 ```
-npm i
+npm ci
 ```
 
 Run the server:

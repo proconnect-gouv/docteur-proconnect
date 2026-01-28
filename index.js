@@ -37,7 +37,6 @@ const {
   PC_USERINFO_SIGNED_RESPONSE_ALG,
   PORT,
   SESSION_SECRET,
-  SITE_TITLE,
 } = z
   .object({
     ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA: z.string(),
@@ -52,7 +51,6 @@ const {
       .default(null),
     CALLBACK_URL: z.string(),
     EXTRA_PARAM_SP_NAME: z.string(),
-    SITE_TITLE: z.string(),
     HOST: z.string(),
     IS_HTTP_PROTOCOL_FORBIDDEN: z.enum(["True", "False"]).default("True"),
     LOGIN_HINT: z.string(),
@@ -84,7 +82,6 @@ console.table({
   PC_SCOPES,
   PC_USERINFO_SIGNED_RESPONSE_ALG,
   PORT,
-  SITE_TITLE,
 });
 //
 
@@ -158,7 +155,6 @@ const AUTHORIZATION_DEFAULT_PARAMS = {
 app.get("/", async (req, res, next) => {
   try {
     res.render("pages/index", {
-      title: SITE_TITLE,
       userinfo: req.session.userinfo,
       idtoken: req.session.idtoken,
     });
