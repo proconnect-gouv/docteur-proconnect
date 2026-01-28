@@ -22,12 +22,9 @@ const {
   ACR_VALUE_FOR_EIDAS2,
   ACR_VALUE_FOR_EIDAS3,
   ACR_VALUE_FOR_SELF_ASSERTED_2FA,
-  ACR_VALUES,
   CALLBACK_URL,
-  EXTRA_PARAM_SP_NAME,
   HOST,
   IS_HTTP_PROTOCOL_FORBIDDEN,
-  LOGIN_HINT,
   NODE_ENV,
   PC_CLIENT_ID,
   PC_CLIENT_SECRET,
@@ -45,15 +42,9 @@ const {
     ACR_VALUE_FOR_EIDAS2: z.string(),
     ACR_VALUE_FOR_EIDAS3: z.string(),
     ACR_VALUE_FOR_SELF_ASSERTED_2FA: z.string(),
-    ACR_VALUES: z
-      .string()
-      .transform((v) => v.split(","))
-      .default(null),
     CALLBACK_URL: z.string(),
-    EXTRA_PARAM_SP_NAME: z.string(),
     HOST: z.string(),
     IS_HTTP_PROTOCOL_FORBIDDEN: z.enum(["True", "False"]).default("True"),
-    LOGIN_HINT: z.string(),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
     PC_CLIENT_ID: z.string().min(1),
     PC_CLIENT_SECRET: z.string().min(1),
@@ -71,9 +62,7 @@ console.table({
   ACR_VALUE_FOR_CONSISTENCY_CHECKED_2FA,
   ACR_VALUE_FOR_EIDAS2,
   ACR_VALUE_FOR_EIDAS3,
-  ACR_VALUES,
   CALLBACK_URL,
-  EXTRA_PARAM_SP_NAME,
   HOST,
   NODE_ENV,
   PC_CLIENT_ID,
@@ -147,9 +136,6 @@ const getProviderConfig = async () => {
 const AUTHORIZATION_DEFAULT_PARAMS = {
   redirect_uri: `${HOST}${CALLBACK_URL}`,
   scope: PC_SCOPES,
-  login_hint: LOGIN_HINT || null,
-  claims: { id_token: { amr: { essential: true } } },
-  sp_name: EXTRA_PARAM_SP_NAME,
 };
 
 app.get("/", async (req, res, next) => {
@@ -195,9 +181,9 @@ app.post(
   getAuthorizationControllerFactory({
     claims: {
       id_token: {
-        acr: { essential: true },
-        amr: { essential: true },
-        auth_time: { essential: true },
+        acr: null,
+        amr: null,
+        auth_time: null,
       },
     },
   }),
@@ -217,7 +203,8 @@ app.post(
             ACR_VALUE_FOR_CONSISTENCY_CHECKED_2FA,
           ],
         },
-        amr: { essential: true },
+        amr: null,
+        auth_time: null,
       },
     },
   }),
@@ -235,7 +222,8 @@ app.post(
             ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA,
           ],
         },
-        amr: { essential: true },
+        amr: null,
+        auth_time: null,
       },
     },
   }),
