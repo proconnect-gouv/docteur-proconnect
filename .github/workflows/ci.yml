@@ -36,12 +36,12 @@ jobs:
           start: npm start
           wait-on: http://localhost:3000
       # Store tests runs in case of failure
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: cypress-screenshots
           path: e2e/cypress/screenshots
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: cypress-videos
