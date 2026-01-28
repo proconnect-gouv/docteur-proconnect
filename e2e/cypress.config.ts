@@ -4,7 +4,12 @@ import { addCucumberPreprocessorPlugin } from "@badeball/cypress-cucumber-prepro
 import { createEsbuildPlugin } from "@badeball/cypress-cucumber-preprocessor/esbuild";
 import createBundler from "@bahmutov/cypress-esbuild-preprocessor";
 import { defineConfig } from "cypress";
-import "dotenv/config";
+import dotenv_flow from "dotenv-flow";
+
+dotenv_flow.config({
+  default_node_env: "development",
+});
+
 //
 
 export default defineConfig({
@@ -17,7 +22,8 @@ export default defineConfig({
     supportFile: false,
   },
   env: {
-    PC_PROVIDER: process.env.PC_PROVIDER,
+    PC_PROVIDER: new URL(process.env.PC_PROVIDER).hostname,
+    PCI_PROVIDER: "identite-sandbox.proconnect.gouv.fr",
   },
 });
 

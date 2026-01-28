@@ -95,7 +95,7 @@ app.set("trust proxy", 1);
 
 app.use(
   session({
-    name: "pc_session",
+    name: "docteur_proconnect",
     resave: false,
     saveUninitialized: true,
     secret: SESSION_SECRET,
@@ -254,6 +254,7 @@ app.get(CALLBACK_URL, async (req, res, next) => {
         { cause: currentUrl.searchParams },
       );
     }
+    console.log({ req, currentUrl, session: req.session });
     const config = await getProviderConfig();
     const tokens = await client.authorizationCodeGrant(
       config,

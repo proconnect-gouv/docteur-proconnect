@@ -6,10 +6,11 @@
     "test": "cypress run"
   },
   "devDependencies": {
-    "@badeball/cypress-cucumber-preprocessor": "^22.0.1",
-    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.0",
-    "cypress": "^13.7.0",
-    "typescript": "^5.4.2"
+    "@badeball/cypress-cucumber-preprocessor": "^24.0.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.8",
+    "cypress": "^15.9.0",
+    "dotenv-flow": "^4.1.0",
+    "typescript": "^5.9.3"
   },
   "packageManager": "npm@10.5.0+sha256.17ca6e08e7633b624e8f870db81a78f46afe119de62bcaf0a7407574139198fc"
 }

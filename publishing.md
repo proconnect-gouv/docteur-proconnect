@@ -1,7 +1,7 @@
 # Publishing docker image
 
 ```
-docker build -t numerique-gouv/proconnect-test-client .
+docker build -t numerique-gouv/docteur-proconnect .
 ```
 
 Authenticate to the github docker registery:
