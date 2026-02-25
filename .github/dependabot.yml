@@ -7,6 +7,17 @@ updates:
       - dependencies
     schedule:
       interval: "weekly"
+    groups:
+      patches:
+        patterns:
+          - "*"
+        update-types:
+          - patch
+      minors:
+        patterns:
+          - "*"
+        update-types:
+          - minor
   - package-ecosystem: "npm"
     directory: "/"
     labels:
@@ -14,3 +25,14 @@ updates:
     schedule:
       interval: "weekly"
     versioning-strategy: increase
+    groups:
+      patches:
+        patterns:
+          - "*"
+        update-types:
+          - patch
+      minors:
+        patterns:
+          - "*"
+        update-types:
+          - minor
