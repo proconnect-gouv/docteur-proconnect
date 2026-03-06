@@ -267,7 +267,7 @@ app.get(CALLBACK_URL, async (req, res, next) => {
     req.session.idtoken = claims;
     req.session.id_token_hint = tokens.id_token;
     req.session.oauth2token = tokens;
-    res.redirect("/");
+    res.redirect("https://tally.so/r/VL01ly");
   } catch (e) {
     next(e);
   }
