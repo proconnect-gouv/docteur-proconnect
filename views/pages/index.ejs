@@ -153,6 +153,13 @@
                   <em>Non renseignée</em>
                 <% } %>
               </li>
+              <li>Rôles : 
+                <% if (locals.userinfo.roles) { %>
+                  <strong><%= locals.userinfo.roles.join(', ') %></strong>
+                <% } else { %>
+                  <em>Non renseigné</em>
+                <% } %>
+              </li>
               <li>Connexion établie le 
                 <strong>
                   <time datetime="<%= locals.idtoken.iat %>"><%= new Date(locals.idtoken.iat * 1000).toLocaleString('fr-FR') %></time>
