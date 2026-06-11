@@ -1,8 +1,12 @@
 import type { AuthHandlers } from "./auth";
+import { create_dev_oidc_handler } from "./dev/oidc_provider";
 import type { SessionStore } from "./session";
 import { render_home } from "./views/home";
 
 const root = import.meta.dir + "/..";
+
+const is_dev = process.env.NODE_ENV !== "production";
+const dev_oidc = is_dev ? create_dev_oidc_handler() : null;
 
 export function create_server(
   port: number | string,
@@ -13,17 +17,9 @@ export function create_server(
     port,
     routes: {
       "/": async (req) => {
-        if (session_store) {
-          const session = await session_store.get(req);
-          const html = render_home(
-            session?.data.userinfo,
-            session?.data.idtoken,
-          );
-          return new Response(html, {
-            headers: { "Content-Type": "text/html; charset=utf-8" },
-          });
-        }
-        return new Response(render_home(), {
+        const session = session_store ? await session_store.get(req) : null;
+        const html = render_home(session?.data.userinfo, session?.data.idtoken);
+        return new Response(html, {
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
       },
@@ -37,8 +33,13 @@ export function create_server(
       "/login-callback": { GET: auth?.handle_callback },
       "/logout": { GET: auth?.handle_logout },
     },
-    fetch(req) {
+    async fetch(req) {
       const { pathname } = new URL(req.url);
+
+      if (dev_oidc) {
+        const dev_response = await dev_oidc(req);
+        if (dev_response) return dev_response;
+      }
 
       if (pathname.startsWith("/dsfr/")) {
         return new Response(

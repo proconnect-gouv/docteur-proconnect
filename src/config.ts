@@ -12,7 +12,9 @@ const config_schema = z.object({
   CALLBACK_URL: z.string(),
   HOST: z.string(),
   IS_HTTP_PROTOCOL_FORBIDDEN: z.enum(["True", "False"]).default("True"),
-  NODE_ENV: z.enum(["development", "production"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
   PC_CLIENT_ID: z.string().min(1),
   PC_CLIENT_SECRET: z.string().min(1),
   PC_ID_TOKEN_SIGNED_RESPONSE_ALG: z.string().optional(),
