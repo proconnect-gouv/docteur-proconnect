@@ -20,36 +20,30 @@ const obj_to_url_params = (obj: Record<string, unknown>): URLSearchParams => {
 
 export function create_server(
   port: number | string,
-  session_store?: SessionStore,
-  config?: AppConfig,
+  session_store: SessionStore,
+  config: AppConfig,
 ) {
   const config_options =
-    config?.IS_HTTP_PROTOCOL_FORBIDDEN === "True"
+    config.IS_HTTP_PROTOCOL_FORBIDDEN === "True"
       ? undefined
       : { execute: [client.allowInsecureRequests] };
 
   const get_provider_config = () =>
-    config
-      ? client.discovery(
-          new URL(config.PC_PROVIDER),
-          config.PC_CLIENT_ID,
-          {
-            id_token_signed_response_alg:
-              config.PC_ID_TOKEN_SIGNED_RESPONSE_ALG,
-            userinfo_signed_response_alg:
-              config.PC_USERINFO_SIGNED_RESPONSE_ALG,
-          },
-          client.ClientSecretPost(config.PC_CLIENT_SECRET),
-          config_options,
-        )
-      : null;
+    client.discovery(
+      new URL(config.PC_PROVIDER),
+      config.PC_CLIENT_ID,
+      {
+        id_token_signed_response_alg: config.PC_ID_TOKEN_SIGNED_RESPONSE_ALG,
+        userinfo_signed_response_alg: config.PC_USERINFO_SIGNED_RESPONSE_ALG,
+      },
+      client.ClientSecretPost(config.PC_CLIENT_SECRET),
+      config_options,
+    );
 
   const make_login_handler = (extra_params: Record<string, unknown>) => {
     return async (_req: Request): Promise<Response> => {
-      if (!config || !session_store) return new Response(null, { status: 404 });
       const session = await session_store.create(config.NODE_ENV);
       const provider_config = await get_provider_config();
-      if (!provider_config) return new Response(null, { status: 404 });
       const nonce = client.randomNonce();
       const state = client.randomState();
 
@@ -77,7 +71,6 @@ export function create_server(
   };
 
   const handle_callback = async (req: Request): Promise<Response> => {
-    if (!config || !session_store) return new Response(null, { status: 404 });
     const session = await session_store.get(req);
     if (!session) return new Response("Session not found", { status: 400 });
 
@@ -90,7 +83,6 @@ export function create_server(
     }
 
     const provider_config = await get_provider_config();
-    if (!provider_config) return new Response(null, { status: 404 });
 
     const tokens = await client.authorizationCodeGrant(
       provider_config,
@@ -119,7 +111,6 @@ export function create_server(
   };
 
   const handle_logout = async (req: Request): Promise<Response> => {
-    if (!config || !session_store) return new Response(null, { status: 404 });
     const session = await session_store.get(req);
     const id_token_hint = session?.data.id_token_hint;
 
@@ -130,8 +121,6 @@ export function create_server(
     }
 
     const provider_config = await get_provider_config();
-    if (!provider_config)
-      return new Response(null, { status: 302, headers: { Location: "/" } });
 
     const redirect_url = client.buildEndSessionUrl(
       provider_config,
@@ -151,7 +140,7 @@ export function create_server(
     port,
     routes: {
       "/": async (req) => {
-        const session = session_store ? await session_store.get(req) : null;
+        const session = await session_store.get(req);
         const html = render_home(session?.data.userinfo, session?.data.idtoken);
         return new Response(html, {
           headers: { "Content-Type": "text/html; charset=utf-8" },
@@ -160,57 +149,51 @@ export function create_server(
       "/common.css": new Response(Bun.file(`${root}/public/common.css`)),
       "/welcome.svg": new Response(Bun.file(`${root}/public/welcome.svg`)),
       "/login": {
-        POST: config
-          ? make_login_handler({
-              claims: { id_token: { acr: null, amr: null, auth_time: null } },
-            })
-          : undefined,
+        POST: make_login_handler({
+          claims: { id_token: { acr: null, amr: null, auth_time: null } },
+        }),
       },
       "/force-2fa": {
-        POST: config
-          ? make_login_handler({
-              claims: {
-                id_token: {
-                  acr: {
-                    essential: true,
-                    values: [
-                      config.ACR_VALUE_FOR_EIDAS2,
-                      config.ACR_VALUE_FOR_EIDAS3,
-                      config.ACR_VALUE_FOR_SELF_ASSERTED_2FA,
-                      config.ACR_VALUE_FOR_CONSISTENCY_CHECKED_2FA,
-                      config.ACR_VALUE_FOR_EIDAS0_MFA,
-                      config.ACR_VALUE_FOR_EIDAS1_MFA,
-                    ],
-                  },
-                  amr: null,
-                  auth_time: null,
-                },
+        POST: make_login_handler({
+          claims: {
+            id_token: {
+              acr: {
+                essential: true,
+                values: [
+                  config.ACR_VALUE_FOR_EIDAS2,
+                  config.ACR_VALUE_FOR_EIDAS3,
+                  config.ACR_VALUE_FOR_SELF_ASSERTED_2FA,
+                  config.ACR_VALUE_FOR_CONSISTENCY_CHECKED_2FA,
+                  config.ACR_VALUE_FOR_EIDAS0_MFA,
+                  config.ACR_VALUE_FOR_EIDAS1_MFA,
+                ],
               },
-            })
-          : undefined,
+              amr: null,
+              auth_time: null,
+            },
+          },
+        }),
       },
       "/force-certification-dirigeant": {
-        POST: config
-          ? make_login_handler({
-              login_type: "certification_dirigeant",
-              claims: {
-                id_token: {
-                  acr: {
-                    essential: true,
-                    values: [
-                      config.ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT,
-                      config.ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA,
-                    ],
-                  },
-                  amr: null,
-                  auth_time: null,
-                },
+        POST: make_login_handler({
+          login_type: "certification_dirigeant",
+          claims: {
+            id_token: {
+              acr: {
+                essential: true,
+                values: [
+                  config.ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT,
+                  config.ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA,
+                ],
               },
-            })
-          : undefined,
+              amr: null,
+              auth_time: null,
+            },
+          },
+        }),
       },
-      "/login-callback": { GET: config ? handle_callback : undefined },
-      "/logout": { GET: config ? handle_logout : undefined },
+      "/login-callback": { GET: handle_callback },
+      "/logout": { GET: handle_logout },
     },
     async fetch(req) {
       const { pathname } = new URL(req.url);
