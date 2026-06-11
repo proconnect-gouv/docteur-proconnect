@@ -29,8 +29,17 @@ export function create_session_store(secret: string) {
   };
 
   const verify = async (value: string, sig: string): Promise<boolean> => {
-    const expected = await sign(value);
-    return expected === sig;
+    const key = await hmac_key_promise;
+    try {
+      return await crypto.subtle.verify(
+        "HMAC",
+        key,
+        Buffer.from(sig, "hex"),
+        new TextEncoder().encode(value),
+      );
+    } catch {
+      return false;
+    }
   };
 
   const parse_cookie = async (
