@@ -11,7 +11,22 @@ const format_date = (unix: unknown): string => {
   return `<time datetime="${unix}">${new Date(unix * 1000).toLocaleString("fr-FR")}</time>`;
 };
 
-const render_logged_out = (): string => `
+const proconnect_button = (action: string, csrf_token: string): string => `
+  <div class="fr-consent-placeholder" style="background: var(--grey-1000-50)">
+    <form action="${action}" method="post">
+      <input type="hidden" name="_csrf" value="${csrf_token}" />
+      <button class="proconnect-button">
+        <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
+      </button>
+    </form>
+    <p>
+      <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre">
+        Qu'est-ce que ProConnect ?
+      </a>
+    </p>
+  </div>`;
+
+const render_logged_out = (csrf_token: string): string => `
   <div class="fr-container fr-py-9v fr-my-32v">
     <div class="fr-grid-row fr-grid-row--middle">
       <div class="fr-col-sm-12 fr-col-md-5">
@@ -42,18 +57,7 @@ const render_logged_out = (): string => `
         </div>
       </div>
       <div class="fr-col-sm-12 fr-col-md-6">
-        <div class="fr-consent-placeholder" style="background: var(--grey-1000-50)">
-          <form action="/login" method="post">
-            <button class="proconnect-button">
-              <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
-            </button>
-          </form>
-          <p>
-            <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre">
-              Qu'est-ce que ProConnect ?
-            </a>
-          </p>
-        </div>
+        ${proconnect_button("/login", csrf_token)}
       </div>
     </div>
 
@@ -71,18 +75,7 @@ const render_logged_out = (): string => `
         </div>
       </div>
       <div class="fr-col-sm-12 fr-col-md-6">
-        <div class="fr-consent-placeholder" style="background: var(--grey-1000-50)">
-          <form action="/force-2fa" method="post">
-            <button class="proconnect-button">
-              <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
-            </button>
-          </form>
-          <p>
-            <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre">
-              Qu'est-ce que ProConnect ?
-            </a>
-          </p>
-        </div>
+        ${proconnect_button("/force-2fa", csrf_token)}
       </div>
     </div>
 
@@ -100,18 +93,7 @@ const render_logged_out = (): string => `
         </div>
       </div>
       <div class="fr-col-sm-12 fr-col-md-6">
-        <div class="fr-consent-placeholder" style="background: var(--grey-1000-50)">
-          <form action="/force-certification-dirigeant" method="post">
-            <button class="proconnect-button">
-              <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
-            </button>
-          </form>
-          <p>
-            <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre">
-              Qu'est-ce que ProConnect ?
-            </a>
-          </p>
-        </div>
+        ${proconnect_button("/force-certification-dirigeant", csrf_token)}
       </div>
     </div>
   </div>
@@ -120,6 +102,7 @@ const render_logged_out = (): string => `
 const render_logged_in = (
   userinfo: Userinfo,
   idtoken: IdTokenClaims,
+  csrf_token: string,
 ): string => {
   const roles = userinfo.roles;
   const amr = idtoken.amr;
@@ -162,19 +145,23 @@ const render_logged_in = (
       </div>
     </div>
     <div class="fr-mt-4w">
-      <a href="/logout" class="fr-btn fr-btn--secondary">Se déconnecter</a>
+      <form action="/logout" method="post" style="display:inline">
+        <input type="hidden" name="_csrf" value="${csrf_token}" />
+        <button type="submit" class="fr-btn fr-btn--secondary">Se déconnecter</button>
+      </form>
     </div>
   </div>
 `;
 };
 
 export function render_home(
-  userinfo?: Userinfo,
-  idtoken?: IdTokenClaims,
+  userinfo: Userinfo | undefined,
+  idtoken: IdTokenClaims | undefined,
+  csrf_token: string,
 ): string {
   const content =
     userinfo && idtoken
-      ? render_logged_in(userinfo, idtoken)
-      : render_logged_out();
+      ? render_logged_in(userinfo, idtoken, csrf_token)
+      : render_logged_out(csrf_token);
   return render_layout("Docteur ProConnect", content);
 }

@@ -35,17 +35,43 @@ const get_provider_config = (config: AppConfig) => {
   );
 };
 
+// sessionId binding is not yet implemented in Bun 1.3.14 — encode session_id
+// into the secret directly so tokens are not reusable across sessions.
+const csrf_secret = (secret: string, session_id: string) =>
+  `${secret}:${session_id}`;
+
+const verify_csrf = async (
+  req: Request,
+  secret: string,
+  session_id: string,
+): Promise<boolean> => {
+  const form_data = await req.formData();
+  const token = form_data.get("_csrf");
+  return (
+    typeof token === "string" &&
+    Bun.CSRF.verify(token, { secret: csrf_secret(secret, session_id) })
+  );
+};
+
 const make_login_handler = (
   config: AppConfig,
   session_store: SessionStore,
   extra_params: Record<string, unknown>,
 ) => {
-  return async (_req: Request): Promise<Response> => {
-    const session = await session_store.create(config.NODE_ENV);
+  return async (req: Request): Promise<Response> => {
+    // Session is created at GET / so the CSRF token is already bound to it.
+    const session = await session_store.get(req);
+    if (!session) return new Response("Session manquante", { status: 403 });
+
+    if (!(await verify_csrf(req, config.SESSION_SECRET, session.session_id))) {
+      return new Response("Token CSRF invalide", { status: 403 });
+    }
+
     const provider_config = await get_provider_config(config);
     const nonce = client.randomNonce();
     const state = client.randomState();
 
+    // Reuse the existing session — no new cookie needed.
     session_store.set(session.session_id, { nonce, state });
 
     const redirect_url = client.buildAuthorizationUrl(
@@ -61,10 +87,7 @@ const make_login_handler = (
 
     return new Response(null, {
       status: 302,
-      headers: {
-        Location: redirect_url.toString(),
-        "Set-Cookie": session.cookie,
-      },
+      headers: { Location: redirect_url.toString() },
     });
   };
 };
@@ -119,9 +142,15 @@ const handle_logout = async (
   session_store: SessionStore,
 ): Promise<Response> => {
   const session = await session_store.get(req);
-  const id_token_hint = session?.data.id_token_hint;
+  if (!session)
+    return new Response(null, { status: 302, headers: { Location: "/" } });
 
-  if (session) session_store.delete(session.session_id);
+  if (!(await verify_csrf(req, config.SESSION_SECRET, session.session_id))) {
+    return new Response("Token CSRF invalide", { status: 403 });
+  }
+
+  const id_token_hint = session.data.id_token_hint;
+  session_store.delete(session.session_id);
 
   if (!id_token_hint) {
     return new Response(null, { status: 302, headers: { Location: "/" } });
@@ -152,11 +181,31 @@ export function create_server(
     port,
     routes: {
       "/": async (req) => {
-        const session = await session_store.get(req);
-        const html = render_home(session?.data.userinfo, session?.data.idtoken);
-        return new Response(html, {
-          headers: { "Content-Type": "text/html; charset=utf-8" },
+        let session = await session_store.get(req);
+        let new_cookie: string | null = null;
+
+        if (!session) {
+          const created = await session_store.create(config.NODE_ENV);
+          session = { session_id: created.session_id, data: {} };
+          new_cookie = created.cookie;
+        }
+
+        const csrf_token = Bun.CSRF.generate(
+          csrf_secret(config.SESSION_SECRET, session.session_id),
+        );
+
+        const html = render_home(
+          session.data.userinfo,
+          session.data.idtoken,
+          csrf_token,
+        );
+
+        const headers = new Headers({
+          "Content-Type": "text/html; charset=utf-8",
         });
+        if (new_cookie) headers.set("Set-Cookie", new_cookie);
+
+        return new Response(html, { headers });
       },
       "/common.css": new Response(Bun.file(`${root}/public/common.css`)),
       "/welcome.svg": new Response(Bun.file(`${root}/public/welcome.svg`)),
@@ -208,7 +257,7 @@ export function create_server(
         GET: (req) => handle_callback(req, config, session_store),
       },
       "/logout": {
-        GET: (req) => handle_logout(req, config, session_store),
+        POST: (req) => handle_logout(req, config, session_store),
       },
     },
     async fetch(req) {
