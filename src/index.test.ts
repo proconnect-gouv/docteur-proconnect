@@ -19,7 +19,7 @@ afterAll(() => {
 });
 
 describe("Docteur ProConnect", () => {
-  it("shows a heading with the app name", async () => {
+  it("shows the welcome heading", async () => {
     await using view = new Bun.WebView(webViewOptions);
     await view.navigate(`http://localhost:${TEST_PORT}`);
 
@@ -27,17 +27,39 @@ describe("Docteur ProConnect", () => {
       `document.querySelector("h1")?.textContent`,
     );
 
-    expect(heading).toContain("Docteur ProConnect");
+    expect(heading).toContain("Dr. ProConnect");
   }, 30_000);
 
-  it("tells the user the app is running on bun", async () => {
+  it("offers a standard login button", async () => {
     await using view = new Bun.WebView(webViewOptions);
     await view.navigate(`http://localhost:${TEST_PORT}`);
 
-    const paragraph = await view.evaluate(
-      `document.querySelector("p")?.textContent`,
+    const form = await view.evaluate(
+      `document.querySelector('form[action="/login"]') !== null`,
     );
 
-    expect(paragraph).toContain("bun");
+    expect(form).toBe(true);
+  }, 30_000);
+
+  it("offers a 2FA login button", async () => {
+    await using view = new Bun.WebView(webViewOptions);
+    await view.navigate(`http://localhost:${TEST_PORT}`);
+
+    const form = await view.evaluate(
+      `document.querySelector('form[action="/force-2fa"]') !== null`,
+    );
+
+    expect(form).toBe(true);
+  }, 30_000);
+
+  it("offers a certification dirigeant login button", async () => {
+    await using view = new Bun.WebView(webViewOptions);
+    await view.navigate(`http://localhost:${TEST_PORT}`);
+
+    const form = await view.evaluate(
+      `document.querySelector('form[action="/force-certification-dirigeant"]') !== null`,
+    );
+
+    expect(form).toBe(true);
   }, 30_000);
 });
