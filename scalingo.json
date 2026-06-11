@@ -1,0 +1,8 @@
+{
+  "stack": "scalingo-24",
+  "buildpacks": [
+    {
+      "url": "https://github.com/proconnect-gouv/bun-buildpack"
+    }
+  ]
+}
