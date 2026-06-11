@@ -216,6 +216,7 @@ export function create_server(
       },
       "/force-2fa": {
         POST: make_login_handler(config, session_store, {
+          login_type: "force_2fa",
           claims: {
             id_token: {
               acr: {

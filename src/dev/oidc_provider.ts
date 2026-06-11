@@ -33,7 +33,7 @@ const TEST_USER_CERTIFICATION_DIRIGEANT = {
   custom: {},
 };
 
-type FlowType = "standard" | "certification_dirigeant";
+type FlowType = "standard" | "force_2fa" | "certification_dirigeant";
 
 type PendingAuth = {
   nonce: string;
@@ -51,10 +51,13 @@ const get_fixture = (flow_type: FlowType) =>
     ? TEST_USER_CERTIFICATION_DIRIGEANT
     : TEST_USER_STANDARD;
 
-const get_acr = (flow_type: FlowType) =>
-  flow_type === "certification_dirigeant"
-    ? "https://proconnect.gouv.fr/assurance/certification-dirigeant"
-    : "https://proconnect.gouv.fr/assurance/consistency-checked-2fa";
+const get_acr = (flow_type: FlowType) => {
+  if (flow_type === "certification_dirigeant")
+    return "https://proconnect.gouv.fr/assurance/certification-dirigeant";
+  if (flow_type === "force_2fa")
+    return "https://proconnect.gouv.fr/assurance/self-asserted-2fa";
+  return "https://proconnect.gouv.fr/assurance/consistency-checked-2fa";
+};
 
 let _key_pair: CryptoKeyPair | null = null;
 const kid = "dev-rsa-key-1";
@@ -197,10 +200,13 @@ export function create_dev_oidc_handler(): (
       const state = url.searchParams.get("state") ?? "";
       const redirect_uri = url.searchParams.get("redirect_uri") ?? "";
       const client_id = url.searchParams.get("client_id") ?? "";
+      const login_type = url.searchParams.get("login_type");
       const flow_type: FlowType =
-        url.searchParams.get("login_type") === "certification_dirigeant"
+        login_type === "certification_dirigeant"
           ? "certification_dirigeant"
-          : "standard";
+          : login_type === "force_2fa"
+            ? "force_2fa"
+            : "standard";
 
       const code = crypto.randomUUID();
       pending_codes.set(code, {
