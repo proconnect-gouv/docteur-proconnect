@@ -15,10 +15,10 @@
   "type": "module",
   "scripts": {
     "build": "echo 'no build step'",
-    "dev": "bun --watch .",
+    "dev": "bun --watch src/index.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "start": "bun .",
+    "start": "bun src/index.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

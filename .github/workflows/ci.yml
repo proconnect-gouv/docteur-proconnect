@@ -21,4 +21,5 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run format:check
       - run: bun run typecheck
+      - uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2.1.2
       - run: bun test
