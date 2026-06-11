@@ -4,6 +4,12 @@ import { handler } from "./handler";
 const TEST_PORT = 3001;
 let server: ReturnType<typeof Bun.serve>;
 
+// --no-sandbox is required in CI Linux environments (Docker/container)
+const webViewOptions: ConstructorParameters<typeof Bun.WebView>[0] =
+  process.platform === "linux"
+    ? { backend: { type: "chrome", argv: ["--no-sandbox"] } }
+    : {};
+
 beforeAll(() => {
   server = Bun.serve({ port: TEST_PORT, fetch: handler });
 });
@@ -14,7 +20,7 @@ afterAll(() => {
 
 describe("Docteur ProConnect", () => {
   it("shows a heading with the app name", async () => {
-    await using view = new Bun.WebView();
+    await using view = new Bun.WebView(webViewOptions);
     await view.navigate(`http://localhost:${TEST_PORT}`);
 
     const heading = await view.evaluate(
@@ -22,10 +28,10 @@ describe("Docteur ProConnect", () => {
     );
 
     expect(heading).toContain("Docteur ProConnect");
-  });
+  }, 30_000);
 
   it("tells the user the app is running on bun", async () => {
-    await using view = new Bun.WebView();
+    await using view = new Bun.WebView(webViewOptions);
     await view.navigate(`http://localhost:${TEST_PORT}`);
 
     const paragraph = await view.evaluate(
@@ -33,5 +39,5 @@ describe("Docteur ProConnect", () => {
     );
 
     expect(paragraph).toContain("bun");
-  });
+  }, 30_000);
 });

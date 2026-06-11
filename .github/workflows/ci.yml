@@ -22,4 +22,7 @@ jobs:
       - run: bun run format:check
       - run: bun run typecheck
       - uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2.1.2
+        id: setup-chrome
       - run: bun test
+        env:
+          BUN_CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
