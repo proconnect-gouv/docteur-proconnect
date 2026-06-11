@@ -3,19 +3,21 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - "**"
-      - "!master"
-  workflow_dispatch:
+    push:
+        branches:
+            - "**"
+            - "!master"
+    workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          cache: "npm"
-          node-version-file: package.json
-      - run: npm ci
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version-file: package.json
+            - run: bun install --frozen-lockfile
+            - run: bun run format:check
+            - run: bun run typecheck
+            - run: bun test
