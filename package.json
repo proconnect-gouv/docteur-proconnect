@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@gouvfr/dsfr": "1.14.4",
-    "openid-client": "^6.8.4",
-    "zod": "^4.4.3"
+    "openid-client": "6.8.4",
+    "zod": "4.4.3"
   }
 }

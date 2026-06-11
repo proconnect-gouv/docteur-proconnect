@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod";
 
 const config_schema = z.object({
   ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA: z.string(),
