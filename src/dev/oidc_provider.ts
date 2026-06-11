@@ -4,8 +4,8 @@
 // the discovery URL, so we omit the http:// scheme from the path prefix.
 const DEV_PATH_PREFIX = "/___dev___/federation.proconnect.gouv.fr/api/v2";
 
-// Fixture based on a real ProConnect session captured in HAR
-const TEST_USER = {
+// Fixtures based on real ProConnect sessions captured in HAR files
+const TEST_USER_STANDARD = {
   sub: "test-sub-dubois-angela-abc123",
   given_name: "Angela",
   usual_name: "DUBOIS",
@@ -19,14 +19,42 @@ const TEST_USER = {
   custom: {},
 };
 
+const TEST_USER_CERTIFICATION_DIRIGEANT = {
+  sub: "test-sub-dubois-angela-cert-dir",
+  given_name: "Angela",
+  usual_name: "DUBOIS",
+  email: "hyyypertool@yopmail.com",
+  uid: "hyyypertool@yopmail.com",
+  siret: "83832482000011",
+  idp_id: "71144ab3-ee1a-4401-b7b3-79b44f7daeeb",
+  idp_name: null,
+  organizational_unit: "Direction des tests numériques",
+  roles: [],
+  custom: {},
+};
+
+type FlowType = "standard" | "certification_dirigeant";
+
 type PendingAuth = {
   nonce: string;
   state: string;
   redirect_uri: string;
   client_id: string;
+  flow_type: FlowType;
 };
 
 const pending_codes = new Map<string, PendingAuth>();
+const access_tokens = new Map<string, FlowType>();
+
+const get_fixture = (flow_type: FlowType) =>
+  flow_type === "certification_dirigeant"
+    ? TEST_USER_CERTIFICATION_DIRIGEANT
+    : TEST_USER_STANDARD;
+
+const get_acr = (flow_type: FlowType) =>
+  flow_type === "certification_dirigeant"
+    ? "https://proconnect.gouv.fr/assurance/certification-dirigeant"
+    : "https://proconnect.gouv.fr/assurance/consistency-checked-2fa";
 
 let _key_pair: CryptoKeyPair | null = null;
 const kid = "dev-rsa-key-1";
@@ -78,6 +106,7 @@ const render_simulator_page = (
   callback_url: string,
   code: string,
   state: string,
+  fixture: typeof TEST_USER_STANDARD,
 ): string => `<!doctype html>
 <html lang="fr">
 <head>
@@ -90,10 +119,10 @@ const render_simulator_page = (
     <h1>Simulateur ProConnect</h1>
     <p>Vous allez vous connecter en tant que :</p>
     <ul>
-      <li>Nom : <strong>${TEST_USER.usual_name} ${TEST_USER.given_name}</strong></li>
-      <li>Email : <strong>${TEST_USER.email}</strong></li>
-      <li>SIRET : <strong>${TEST_USER.siret}</strong></li>
-      <li>Rôles : <strong>${TEST_USER.roles.join(", ")}</strong></li>
+      <li>Nom : <strong>${fixture.usual_name} ${fixture.given_name}</strong></li>
+      <li>Email : <strong>${fixture.email}</strong></li>
+      <li>SIRET : <strong>${fixture.siret}</strong></li>
+      <li>Rôles : <strong>${fixture.roles.join(", ")}</strong></li>
     </ul>
     <form method="get" action="${callback_url}">
       <input type="hidden" name="code" value="${code}" />
@@ -168,14 +197,31 @@ export function create_dev_oidc_handler(): (
       const state = url.searchParams.get("state") ?? "";
       const redirect_uri = url.searchParams.get("redirect_uri") ?? "";
       const client_id = url.searchParams.get("client_id") ?? "";
+      const claims_param = url.searchParams.get("claims") ?? "";
+
+      const flow_type: FlowType = claims_param.includes(
+        "certification-dirigeant",
+      )
+        ? "certification_dirigeant"
+        : "standard";
 
       const code = crypto.randomUUID();
-      pending_codes.set(code, { nonce, state, redirect_uri, client_id });
-
-      const callback_url = `${issuer}/authorize/callback`;
-      return new Response(render_simulator_page(callback_url, code, state), {
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+      pending_codes.set(code, {
+        nonce,
+        state,
+        redirect_uri,
+        client_id,
+        flow_type,
       });
+
+      const fixture = get_fixture(flow_type);
+      const callback_url = `${issuer}/authorize/callback`;
+      return new Response(
+        render_simulator_page(callback_url, code, state, fixture),
+        {
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        },
+      );
     }
 
     // Authorization callback — browser submits the simulator form here
@@ -203,17 +249,21 @@ export function create_dev_oidc_handler(): (
       if (!pending) return json({ error: "invalid_grant" }, 400);
       pending_codes.delete(code);
 
+      const { flow_type } = pending;
+      const fixture = get_fixture(flow_type);
       const now = Math.floor(Date.now() / 1000);
       const access_token = crypto.randomUUID();
 
+      access_tokens.set(access_token, flow_type);
+
       const id_token = await sign_jwt({
         iss: issuer,
-        sub: TEST_USER.sub,
+        sub: fixture.sub,
         aud: pending.client_id,
         iat: now,
         exp: now + 3600,
         nonce: pending.nonce,
-        acr: "https://proconnect.gouv.fr/assurance/consistency-checked-2fa",
+        acr: get_acr(flow_type),
         amr: ["pop", "mfa"],
         auth_time: now,
       });
@@ -228,7 +278,11 @@ export function create_dev_oidc_handler(): (
 
     // Userinfo endpoint — called server-to-server by openid-client
     if (endpoint === "/userinfo" && req.method === "GET") {
-      return json(TEST_USER);
+      const auth_header = req.headers.get("authorization") ?? "";
+      const access_token = auth_header.replace(/^Bearer\s+/i, "");
+      const flow_type = access_tokens.get(access_token) ?? "standard";
+      access_tokens.delete(access_token);
+      return json(get_fixture(flow_type));
     }
 
     // End session endpoint — browser redirect from logout
@@ -244,4 +298,4 @@ export function create_dev_oidc_handler(): (
   };
 }
 
-export { DEV_PATH_PREFIX, TEST_USER };
+export { DEV_PATH_PREFIX, TEST_USER_STANDARD as TEST_USER };

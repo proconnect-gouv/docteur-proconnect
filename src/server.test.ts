@@ -35,6 +35,17 @@ const click_text = async (view: Bun.WebView, text: string) =>
       .find(el => el.textContent.includes(${JSON.stringify(text)}))?.click()`,
   );
 
+// Click the ProConnect button inside the section whose heading contains section_text.
+// Used when multiple "S'identifier avec ProConnect" buttons appear on the same page.
+const click_proconnect_near = async (view: Bun.WebView, section_text: string) =>
+  view.evaluate(
+    `[...document.querySelectorAll('h6')]
+      .find(h => h.textContent.includes(${JSON.stringify(section_text)}))
+      ?.closest('.fr-grid-row')
+      ?.querySelector('button')
+      ?.click()`,
+  );
+
 beforeAll(() => {
   const session_store = create_session_store(config.SESSION_SECRET);
   server = create_server(config.PORT, session_store, config);
@@ -105,6 +116,36 @@ describe("Connexion avec ProConnect", () => {
     expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
     expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
     expect(await has_visible_text(view, "13002526500013")).toBe(true);
+  }, 30_000);
+
+  it("affiche les informations du compte après connexion double authentification (2FA)", async () => {
+    await using view = new Bun.WebView(make_web_view_options());
+    await view.navigate(base_url);
+
+    await click_proconnect_near(view, "double authentification");
+    await Bun.sleep(500);
+    await click_text(view, "Se connecter avec ProConnect");
+    await Bun.sleep(1000);
+
+    expect(await has_visible_text(view, "Votre compte")).toBe(true);
+    expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
+    expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
+    expect(await has_visible_text(view, "13002526500013")).toBe(true);
+  }, 30_000);
+
+  it("affiche les informations du compte après connexion avec certification dirigeant", async () => {
+    await using view = new Bun.WebView(make_web_view_options());
+    await view.navigate(base_url);
+
+    await click_proconnect_near(view, "certification dirigeant");
+    await Bun.sleep(500);
+    await click_text(view, "Se connecter avec ProConnect");
+    await Bun.sleep(1000);
+
+    expect(await has_visible_text(view, "Votre compte")).toBe(true);
+    expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
+    expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
+    expect(await has_visible_text(view, "83832482000011")).toBe(true);
   }, 30_000);
 
   it("permet de se déconnecter", async () => {
