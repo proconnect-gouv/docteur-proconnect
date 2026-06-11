@@ -24,10 +24,8 @@ const make_web_view_options = (): ConstructorParameters<
       }
     : {};
 
-const has_visible_text = async (view: Bun.WebView, text: string) =>
-  (await view.evaluate(
-    `document.body.textContent.includes(${JSON.stringify(text)})`,
-  )) as boolean;
+const page_text = async (view: Bun.WebView) =>
+  (await view.evaluate(`document.body.textContent`)) as string;
 
 const click_text = async (view: Bun.WebView, text: string) =>
   view.evaluate(
@@ -62,43 +60,39 @@ describe("Page d'accueil", () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    expect(
-      await has_visible_text(view, "Bienvenue chez le Dr. ProConnect"),
-    ).toBe(true);
+    expect(await page_text(view)).toContain("Bienvenue chez le Dr. ProConnect");
   }, 30_000);
 
   it("propose une connexion standard", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    expect(await has_visible_text(view, "Connexion standard")).toBe(true);
+    expect(await page_text(view)).toContain("Connexion standard");
   }, 30_000);
 
   it("propose une connexion double authentification (2FA)", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    expect(
-      await has_visible_text(view, "Connexion double authentification (2FA)"),
-    ).toBe(true);
+    expect(await page_text(view)).toContain(
+      "Connexion double authentification (2FA)",
+    );
   }, 30_000);
 
   it("propose une connexion avec certification dirigeant", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    expect(
-      await has_visible_text(view, "Connexion avec certification dirigeant"),
-    ).toBe(true);
+    expect(await page_text(view)).toContain(
+      "Connexion avec certification dirigeant",
+    );
   }, 30_000);
 
   it("affiche le bouton S'identifier avec ProConnect", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    expect(await has_visible_text(view, "S'identifier avec ProConnect")).toBe(
-      true,
-    );
+    expect(await page_text(view)).toContain("S'identifier avec ProConnect");
   }, 30_000);
 });
 
@@ -112,17 +106,15 @@ describe("Connexion avec ProConnect", () => {
     await click_text(view, "Se connecter avec ProConnect");
     await Bun.sleep(1000);
 
-    expect(await has_visible_text(view, "Votre compte")).toBe(true);
-    expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
-    expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
-    expect(await has_visible_text(view, "13002526500013")).toBe(true);
-    expect(await has_visible_text(view, "agent_public")).toBe(true);
-    expect(
-      await has_visible_text(
-        view,
-        "https://proconnect.gouv.fr/assurance/consistency-checked-2fa",
-      ),
-    ).toBe(true);
+    const body = await page_text(view);
+    expect(body).toContain("Votre compte");
+    expect(body).toContain("DUBOIS Angela");
+    expect(body).toContain("hyyypertool@yopmail.com");
+    expect(body).toContain("13002526500013");
+    expect(body).toContain("agent_public");
+    expect(body).toContain(
+      "https://proconnect.gouv.fr/assurance/consistency-checked-2fa",
+    );
   }, 30_000);
 
   it("affiche les informations du compte après connexion double authentification (2FA)", async () => {
@@ -134,17 +126,15 @@ describe("Connexion avec ProConnect", () => {
     await click_text(view, "Se connecter avec ProConnect");
     await Bun.sleep(1000);
 
-    expect(await has_visible_text(view, "Votre compte")).toBe(true);
-    expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
-    expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
-    expect(await has_visible_text(view, "13002526500013")).toBe(true);
-    expect(await has_visible_text(view, "agent_public")).toBe(true);
-    expect(
-      await has_visible_text(
-        view,
-        "https://proconnect.gouv.fr/assurance/self-asserted-2fa",
-      ),
-    ).toBe(true);
+    const body = await page_text(view);
+    expect(body).toContain("Votre compte");
+    expect(body).toContain("DUBOIS Angela");
+    expect(body).toContain("hyyypertool@yopmail.com");
+    expect(body).toContain("13002526500013");
+    expect(body).toContain("agent_public");
+    expect(body).toContain(
+      "https://proconnect.gouv.fr/assurance/self-asserted-2fa",
+    );
   }, 30_000);
 
   it("affiche les informations du compte après connexion avec certification dirigeant", async () => {
@@ -156,17 +146,15 @@ describe("Connexion avec ProConnect", () => {
     await click_text(view, "Se connecter avec ProConnect");
     await Bun.sleep(1000);
 
-    expect(await has_visible_text(view, "Votre compte")).toBe(true);
-    expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
-    expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
-    expect(await has_visible_text(view, "83832482000011")).toBe(true);
-    expect(await has_visible_text(view, "agent_public")).toBe(false);
-    expect(
-      await has_visible_text(
-        view,
-        "https://proconnect.gouv.fr/assurance/certification-dirigeant",
-      ),
-    ).toBe(true);
+    const body = await page_text(view);
+    expect(body).toContain("Votre compte");
+    expect(body).toContain("DUBOIS Angela");
+    expect(body).toContain("hyyypertool@yopmail.com");
+    expect(body).toContain("83832482000011");
+    expect(body).not.toContain("agent_public");
+    expect(body).toContain(
+      "https://proconnect.gouv.fr/assurance/certification-dirigeant",
+    );
   }, 30_000);
 
   it("permet de se déconnecter", async () => {
@@ -181,9 +169,8 @@ describe("Connexion avec ProConnect", () => {
     await click_text(view, "Se déconnecter");
     await Bun.sleep(500);
 
-    expect(
-      await has_visible_text(view, "Bienvenue chez le Dr. ProConnect"),
-    ).toBe(true);
-    expect(await has_visible_text(view, "Votre compte")).toBe(false);
+    const body = await page_text(view);
+    expect(body).toContain("Bienvenue chez le Dr. ProConnect");
+    expect(body).not.toContain("Votre compte");
   }, 30_000);
 });
