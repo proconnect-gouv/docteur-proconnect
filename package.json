@@ -20,6 +20,8 @@
     "format:check": "prettier --check .",
     "start": "bun src/main.ts",
     "test": "bun test",
+    "test:unit": "bun test --testPathPattern='(?<!browser)\\.test\\.ts$'",
+    "test:browser": "bun test --testPathPattern='\\.browser\\.test\\.ts$'",
     "typecheck": "tsc --noEmit"
   },
   "prettier": {
