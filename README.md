@@ -1,25 +1,29 @@
-# Docteur ProConnect
+# 🩺 Docteur ProConnect
 
 Docteur ProConnect is a tool to inspect ProConnect authentication flows and the data shared with partner services.
 
-## Run it with Node.js v24 or higher
+## 🐇 Run it with Bun
 
 Install the dependencies:
 
 ```
-npm ci
+bun install
 ```
 
 Run the server:
 
 ```
-npm start
+bun start
 ```
 
-## Run Cypress test
+## 🧪 Tests
 
 ```
-cd e2e
-npm i
-npm test
+bun test
+```
+
+## ✨ Format
+
+```
+bun run format
 ```
