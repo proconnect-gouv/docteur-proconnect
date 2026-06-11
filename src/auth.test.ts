@@ -9,9 +9,21 @@ const config = parse_config();
 
 let server: ReturnType<typeof create_server>;
 
-const web_view_options: ConstructorParameters<typeof Bun.WebView>[0] =
+// Each test needs a fresh Chrome profile — without this, Chrome reuses cookies
+// between WebView instances in CI and the previous test's session leaks in.
+const make_web_view_options = (): ConstructorParameters<
+  typeof Bun.WebView
+>[0] =>
   process.platform === "linux"
-    ? { backend: { type: "chrome", argv: ["--no-sandbox"] } }
+    ? {
+        backend: {
+          type: "chrome",
+          argv: [
+            "--no-sandbox",
+            `--user-data-dir=/tmp/bun-webview-${crypto.randomUUID()}`,
+          ],
+        },
+      }
     : {};
 
 const has_visible_text = async (view: Bun.WebView, text: string) =>
@@ -54,7 +66,7 @@ describe("Simulateur ProConnect (___dev___)", () => {
 
 describe("Flux de connexion ProConnect", () => {
   it("affiche le simulateur après avoir cliqué sur S'identifier", async () => {
-    await using view = new Bun.WebView(web_view_options);
+    await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
     await view.evaluate(
@@ -68,7 +80,7 @@ describe("Flux de connexion ProConnect", () => {
   }, 30_000);
 
   it("affiche le compte après connexion via le simulateur", async () => {
-    await using view = new Bun.WebView(web_view_options);
+    await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
     // Submit login form
@@ -95,7 +107,7 @@ describe("Flux de connexion ProConnect", () => {
   }, 30_000);
 
   it("retourne à l'accueil après déconnexion", async () => {
-    await using view = new Bun.WebView(web_view_options);
+    await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
     // Login
