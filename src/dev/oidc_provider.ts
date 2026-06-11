@@ -197,13 +197,10 @@ export function create_dev_oidc_handler(): (
       const state = url.searchParams.get("state") ?? "";
       const redirect_uri = url.searchParams.get("redirect_uri") ?? "";
       const client_id = url.searchParams.get("client_id") ?? "";
-      const claims_param = url.searchParams.get("claims") ?? "";
-
-      const flow_type: FlowType = claims_param.includes(
-        "certification-dirigeant",
-      )
-        ? "certification_dirigeant"
-        : "standard";
+      const flow_type: FlowType =
+        url.searchParams.get("login_type") === "certification_dirigeant"
+          ? "certification_dirigeant"
+          : "standard";
 
       const code = crypto.randomUUID();
       pending_codes.set(code, {

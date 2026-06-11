@@ -192,6 +192,7 @@ export function create_server(
       "/force-certification-dirigeant": {
         POST: config
           ? make_login_handler({
+              login_type: "certification_dirigeant",
               claims: {
                 id_token: {
                   acr: {
