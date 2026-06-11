@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { parse_config } from "./config";
-import { DEV_PATH_PREFIX, TEST_USER } from "./dev/oidc_provider";
 import { create_server } from "./server";
 import { create_session_store } from "./session";
 
@@ -30,6 +29,12 @@ const has_visible_text = async (view: Bun.WebView, text: string) =>
     `document.body.textContent.includes(${JSON.stringify(text)})`,
   )) as boolean;
 
+const click_text = async (view: Bun.WebView, text: string) =>
+  view.evaluate(
+    `[...document.querySelectorAll('button,a,input[type=submit]')]
+      .find(el => el.textContent.includes(${JSON.stringify(text)}))?.click()`,
+  );
+
 beforeAll(() => {
   const session_store = create_session_store(config.SESSION_SECRET);
   server = create_server(config.PORT, session_store, config);
@@ -41,7 +46,7 @@ afterAll(() => {
 
 const base_url = `http://localhost:${config.PORT}`;
 
-describe("Docteur ProConnect", () => {
+describe("Page d'accueil", () => {
   it("accueille l'utilisateur", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
@@ -58,7 +63,7 @@ describe("Docteur ProConnect", () => {
     expect(await has_visible_text(view, "Connexion standard")).toBe(true);
   }, 30_000);
 
-  it("propose une connexion double authentification", async () => {
+  it("propose une connexion double authentification (2FA)", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
@@ -86,83 +91,32 @@ describe("Docteur ProConnect", () => {
   }, 30_000);
 });
 
-describe("Simulateur ProConnect (___dev___)", () => {
-  it("expose le document de découverte OIDC", async () => {
-    const discovery_url = `${base_url}${DEV_PATH_PREFIX}/.well-known/openid-configuration`;
-    const res = await fetch(discovery_url);
-    const doc = (await res.json()) as Record<string, unknown>;
-
-    expect(res.status).toBe(200);
-    expect(doc.issuer).toBe(`${base_url}${DEV_PATH_PREFIX}`);
-    expect(doc.authorization_endpoint).toContain("/authorize");
-    expect(doc.token_endpoint).toContain("/token");
-  });
-
-  it("expose les clés publiques JWKS", async () => {
-    const res = await fetch(`${base_url}${DEV_PATH_PREFIX}/jwks`);
-    const jwks = (await res.json()) as { keys: unknown[] };
-
-    expect(res.status).toBe(200);
-    expect(jwks.keys.length).toBeGreaterThan(0);
-  });
-});
-
-describe("Flux de connexion ProConnect", () => {
-  it("affiche le simulateur après avoir cliqué sur S'identifier", async () => {
+describe("Connexion avec ProConnect", () => {
+  it("affiche les informations du compte après connexion", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    await view.evaluate(
-      "document.querySelector(\"form[action='/login']\").submit()",
-    );
-    await Bun.sleep(1000);
-
-    expect(await has_visible_text(view, "Simulateur ProConnect")).toBe(true);
-    expect(await has_visible_text(view, TEST_USER.usual_name)).toBe(true);
-    expect(await has_visible_text(view, TEST_USER.given_name)).toBe(true);
-  }, 30_000);
-
-  it("affiche le compte après connexion via le simulateur", async () => {
-    await using view = new Bun.WebView(make_web_view_options());
-    await view.navigate(base_url);
-
-    await view.evaluate(
-      "document.querySelector(\"form[action='/login']\").submit()",
-    );
+    await click_text(view, "S'identifier avec ProConnect");
     await Bun.sleep(500);
-
-    await view.evaluate(
-      "document.querySelector(\"button[type='submit']\").click()",
-    );
+    await click_text(view, "Se connecter avec ProConnect");
     await Bun.sleep(1000);
 
     expect(await has_visible_text(view, "Votre compte")).toBe(true);
-    expect(
-      await has_visible_text(
-        view,
-        `${TEST_USER.usual_name} ${TEST_USER.given_name}`,
-      ),
-    ).toBe(true);
-    expect(await has_visible_text(view, TEST_USER.email)).toBe(true);
-    expect(await has_visible_text(view, TEST_USER.siret)).toBe(true);
+    expect(await has_visible_text(view, "DUBOIS Angela")).toBe(true);
+    expect(await has_visible_text(view, "hyyypertool@yopmail.com")).toBe(true);
+    expect(await has_visible_text(view, "13002526500013")).toBe(true);
   }, 30_000);
 
-  it("retourne à l'accueil après déconnexion", async () => {
+  it("permet de se déconnecter", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
 
-    await view.evaluate(
-      "document.querySelector(\"form[action='/login']\").submit()",
-    );
+    await click_text(view, "S'identifier avec ProConnect");
     await Bun.sleep(500);
-    await view.evaluate(
-      "document.querySelector(\"button[type='submit']\").click()",
-    );
+    await click_text(view, "Se connecter avec ProConnect");
     await Bun.sleep(1000);
 
-    await view.evaluate(
-      "document.querySelector(\"a[href='/logout']\").click()",
-    );
+    await click_text(view, "Se déconnecter");
     await Bun.sleep(500);
 
     expect(
