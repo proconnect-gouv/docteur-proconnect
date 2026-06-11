@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
-import { handler } from "./handler";
+import { create_server } from "./server";
 
 const TEST_PORT = 3001;
-let server: ReturnType<typeof Bun.serve>;
+let server: ReturnType<typeof create_server>;
 
 // --no-sandbox is required in CI Linux environments (Docker/container)
 const web_view_options: ConstructorParameters<typeof Bun.WebView>[0] =
@@ -16,7 +16,7 @@ const has_visible_text = async (view: Bun.WebView, text: string) =>
   )) as boolean;
 
 beforeAll(() => {
-  server = Bun.serve({ port: TEST_PORT, fetch: handler });
+  server = create_server(TEST_PORT);
 });
 
 afterAll(() => {
