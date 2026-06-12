@@ -6,31 +6,35 @@ const DEV_PATH_PREFIX = "/___dev___/federation.proconnect.gouv.fr/api/v2";
 
 // Fixtures based on real ProConnect sessions captured in HAR files
 const TEST_USER_STANDARD = {
-  sub: "test-sub-dubois-angela-abc123",
+  sub: "436402e3-ffa7-4ae3-8193-b35a1c43853e",
   given_name: "Angela",
   usual_name: "DUBOIS",
   email: "hyyypertool@yopmail.com",
-  uid: "hyyypertool@yopmail.com",
+  uid: "9681",
   siret: "13002526500013",
   idp_id: "71144ab3-ee1a-4401-b7b3-79b44f7daeeb",
-  idp_name: null,
-  organizational_unit: "Direction des tests numériques",
+  custom: {
+    email_verified: true,
+    phone_number_verified: false,
+  },
   roles: ["agent_public", "agent_public_etat"],
-  custom: {},
+  organization_label: "Direction interministerielle du numerique (DINUM)",
 };
 
 const TEST_USER_CERTIFICATION_DIRIGEANT = {
-  sub: "test-sub-dubois-angela-cert-dir",
+  sub: "8203c441-5b39-4a4c-bd31-bb0fb40eccbf",
   given_name: "Angela",
   usual_name: "DUBOIS",
   email: "hyyypertool@yopmail.com",
-  uid: "hyyypertool@yopmail.com",
+  uid: "9681",
   siret: "83832482000011",
   idp_id: "71144ab3-ee1a-4401-b7b3-79b44f7daeeb",
-  idp_name: null,
-  organizational_unit: "Direction des tests numériques",
+  custom: {
+    email_verified: true,
+    phone_number_verified: false,
+  },
   roles: [],
-  custom: {},
+  organization_label: "Societe de test du dirigeant (SASU)",
 };
 
 type FlowType = "standard" | "force_2fa" | "certification_dirigeant";
@@ -173,12 +177,14 @@ export function create_dev_oidc_handler(): (
           "given_name",
           "usual_name",
           "email",
+          "phone",
           "uid",
+          "siren",
           "siret",
           "idp_id",
-          "idp_name",
-          "organizational_unit",
+          "custom",
           "roles",
+          "organization_label",
           "acr",
           "amr",
           "auth_time",

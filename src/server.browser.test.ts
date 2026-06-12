@@ -125,6 +125,7 @@ describe("Connexion avec ProConnect", () => {
     expect(body).toContain("hyyypertool@yopmail.com");
     expect(body).toContain("13002526500013");
     expect(body).toContain("agent_public");
+    expect(body).toContain("Direction interministerielle du numerique (DINUM)");
     expect(body).toContain(
       "https://proconnect.gouv.fr/assurance/consistency-checked-2fa",
     );
@@ -143,6 +144,7 @@ describe("Connexion avec ProConnect", () => {
     expect(body).toContain("hyyypertool@yopmail.com");
     expect(body).toContain("13002526500013");
     expect(body).toContain("agent_public");
+    expect(body).toContain("Direction interministerielle du numerique (DINUM)");
     expect(body).toContain(
       "https://proconnect.gouv.fr/assurance/self-asserted-2fa",
     );
@@ -161,6 +163,7 @@ describe("Connexion avec ProConnect", () => {
     expect(body).toContain("hyyypertool@yopmail.com");
     expect(body).toContain("83832482000011");
     expect(body).not.toContain("agent_public");
+    expect(body).toContain("Societe de test du dirigeant (SASU)");
     expect(body).toContain(
       "https://proconnect.gouv.fr/assurance/certification-dirigeant",
     );
