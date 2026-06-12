@@ -22,52 +22,54 @@ export function render_layout(title: string, content: string): string {
     <link rel="stylesheet" href="/dsfr/utility/utility.min.css" />
   </head>
   <body>
-    <header role="banner" class="fr-header">
-      <div class="fr-header__body">
-        <div class="fr-container">
-          <div class="fr-header__body-row">
-            <div class="fr-header__brand fr-enlarge-link">
-              <div class="fr-header__brand-top">
-                <div class="fr-header__logo">
-                  <p class="fr-logo">République<br />française</p>
+    <div class="pc-cowboy-shot">
+      <header role="banner" class="fr-header">
+        <div class="fr-header__body">
+          <div class="fr-container">
+            <div class="fr-header__body-row">
+              <div class="fr-header__brand fr-enlarge-link">
+                <div class="fr-header__brand-top">
+                  <div class="fr-header__logo">
+                    <p class="fr-logo">République<br />française</p>
+                  </div>
+                  <div class="fr-header__navbar">
+                    <button
+                      class="fr-btn--menu fr-btn"
+                      data-fr-opened="false"
+                      aria-controls="modal-499"
+                      id="button-500"
+                      title="Menu"
+                    >
+                      Menu
+                    </button>
+                  </div>
                 </div>
-                <div class="fr-header__navbar">
-                  <button
-                    class="fr-btn--menu fr-btn"
-                    data-fr-opened="false"
-                    aria-controls="modal-499"
-                    id="button-500"
-                    title="Menu"
-                  >
-                    Menu
-                  </button>
+                <div class="fr-header__service">
+                  <a href="/" title="Accueil - Dr. Proconnect">
+                    <p class="fr-header__service-title">Docteur Proconnect</p>
+                  </a>
+                  <p class="fr-header__service-tagline">
+                    Consultez vos données de connexion
+                  </p>
                 </div>
-              </div>
-              <div class="fr-header__service">
-                <a href="/" title="Accueil - Dr. Proconnect">
-                  <p class="fr-header__service-title">Docteur Proconnect</p>
-                </a>
-                <p class="fr-header__service-tagline">
-                  Consultez vos données de connexion
-                </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="fr-header__menu fr-modal" id="modal-499" aria-labelledby="button-500">
-        <div class="fr-container">
-          <button class="fr-btn--close fr-btn" aria-controls="modal-499" title="Fermer">
-            Fermer
-          </button>
-          <div class="fr-header__menu-links"></div>
+        <div class="fr-header__menu fr-modal" id="modal-499" aria-labelledby="button-500">
+          <div class="fr-container">
+            <button class="fr-btn--close fr-btn" aria-controls="modal-499" title="Fermer">
+              Fermer
+            </button>
+            <div class="fr-header__menu-links"></div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <main>
-      ${content}
-    </main>
+      <main>
+        ${content}
+      </main>
+    </div>
 
     <footer class="fr-footer" role="contentinfo" id="footer-7361">
       <div class="fr-container">
