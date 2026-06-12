@@ -48,7 +48,10 @@ type PendingAuth = {
 };
 
 const pending_codes = new Map<string, PendingAuth>();
-const access_tokens = new Map<string, FlowType>();
+const access_tokens = new Map<
+  string,
+  { flow_type: FlowType; client_id: string }
+>();
 
 const get_fixture = (flow_type: FlowType) =>
   flow_type === "certification_dirigeant"
@@ -167,7 +170,8 @@ export function create_dev_oidc_handler(): (
         response_types_supported: ["code"],
         subject_types_supported: ["public"],
         id_token_signing_alg_values_supported: ["RS256"],
-        userinfo_signing_alg_values_supported: ["none"],
+        // Like the real PCF: userinfo is always a signed JWT, never plain JSON.
+        userinfo_signing_alg_values_supported: ["RS256"],
         token_endpoint_auth_methods_supported: [
           "client_secret_post",
           "client_secret_basic",
@@ -176,22 +180,22 @@ export function create_dev_oidc_handler(): (
         // https://federation.proconnect.gouv.fr/api/v2/.well-known/openid-configuration
         // Note: the "phone" scope delivers the "phone_number" claim.
         claims_supported: [
-          "sub",
+          "acr",
           "amr",
-          "uid",
-          "given_name",
+          "auth_time",
+          "custom",
           "email",
+          "given_name",
+          "idp_id",
+          "iss",
+          "organization_label",
           "phone_number",
+          "roles",
           "siren",
           "siret",
+          "sub",
+          "uid",
           "usual_name",
-          "idp_id",
-          "roles",
-          "organization_label",
-          "custom",
-          "acr",
-          "auth_time",
-          "iss",
         ],
       });
     }
@@ -266,7 +270,10 @@ export function create_dev_oidc_handler(): (
       const now = Math.floor(Date.now() / 1000);
       const access_token = crypto.randomUUID();
 
-      access_tokens.set(access_token, flow_type);
+      access_tokens.set(access_token, {
+        flow_type,
+        client_id: pending.client_id,
+      });
 
       const id_token = await sign_jwt({
         iss: issuer,
@@ -288,13 +295,25 @@ export function create_dev_oidc_handler(): (
       });
     }
 
-    // Userinfo endpoint — called server-to-server by openid-client
+    // Userinfo endpoint — called server-to-server by openid-client.
+    // Always a signed JWT, like the real PCF.
     if (endpoint === "/userinfo" && req.method === "GET") {
       const auth_header = req.headers.get("authorization") ?? "";
       const access_token = auth_header.replace(/^Bearer\s+/i, "");
-      const flow_type = access_tokens.get(access_token) ?? "standard";
+      const granted = access_tokens.get(access_token);
       access_tokens.delete(access_token);
-      return json(get_fixture(flow_type));
+
+      const now = Math.floor(Date.now() / 1000);
+      const jwt = await sign_jwt({
+        ...get_fixture(granted?.flow_type ?? "standard"),
+        aud: granted?.client_id ?? "",
+        exp: now + 3600,
+        iat: now,
+        iss: issuer,
+      });
+      return new Response(jwt, {
+        headers: { "Content-Type": "application/jwt" },
+      });
     }
 
     // End session endpoint — browser redirect from logout
