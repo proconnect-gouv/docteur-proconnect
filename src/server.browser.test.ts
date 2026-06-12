@@ -27,6 +27,20 @@ const make_web_view_options = (): ConstructorParameters<
 const page_text = async (view: Bun.WebView) =>
   (await view.evaluate(`document.body.textContent`)) as string;
 
+// Poll instead of fixed sleeps: returns the page text as soon as it contains
+// the expected string. evaluate can fail mid-navigation — treat as "not yet".
+const wait_for_text = async (view: Bun.WebView, text: string) => {
+  const deadline = Date.now() + 10_000;
+  while (true) {
+    const body = await page_text(view).catch(() => "");
+    if (body.includes(text)) return body;
+    if (Date.now() > deadline) {
+      throw new Error(`Timed out waiting for ${JSON.stringify(text)}`);
+    }
+    await Bun.sleep(50);
+  }
+};
+
 const click_text = async (view: Bun.WebView, text: string) =>
   view.evaluate(
     `[...document.querySelectorAll('button,a,input[type=submit]')]
@@ -106,12 +120,10 @@ describe("Connexion avec ProConnect", () => {
     await view.navigate(base_url);
 
     await click_text(view, "S'identifier avec ProConnect");
-    await Bun.sleep(500);
+    await wait_for_text(view, "Se connecter avec ProConnect");
     await click_text(view, "Se connecter avec ProConnect");
-    await Bun.sleep(1000);
 
-    const body = await page_text(view);
-    expect(body).toContain("Votre compte");
+    const body = await wait_for_text(view, "Votre compte");
     expect(body).toContain("DUBOIS Angela");
     expect(body).toContain("hyyypertool@yopmail.com");
     expect(body).toContain("13002526500013");
@@ -126,12 +138,10 @@ describe("Connexion avec ProConnect", () => {
     await view.navigate(base_url);
 
     await click_proconnect_near(view, "double authentification");
-    await Bun.sleep(500);
+    await wait_for_text(view, "Se connecter avec ProConnect");
     await click_text(view, "Se connecter avec ProConnect");
-    await Bun.sleep(1000);
 
-    const body = await page_text(view);
-    expect(body).toContain("Votre compte");
+    const body = await wait_for_text(view, "Votre compte");
     expect(body).toContain("DUBOIS Angela");
     expect(body).toContain("hyyypertool@yopmail.com");
     expect(body).toContain("13002526500013");
@@ -146,12 +156,10 @@ describe("Connexion avec ProConnect", () => {
     await view.navigate(base_url);
 
     await click_proconnect_near(view, "certification dirigeant");
-    await Bun.sleep(500);
+    await wait_for_text(view, "Se connecter avec ProConnect");
     await click_text(view, "Se connecter avec ProConnect");
-    await Bun.sleep(1000);
 
-    const body = await page_text(view);
-    expect(body).toContain("Votre compte");
+    const body = await wait_for_text(view, "Votre compte");
     expect(body).toContain("DUBOIS Angela");
     expect(body).toContain("hyyypertool@yopmail.com");
     expect(body).toContain("83832482000011");
@@ -166,15 +174,13 @@ describe("Connexion avec ProConnect", () => {
     await view.navigate(base_url);
 
     await click_text(view, "S'identifier avec ProConnect");
-    await Bun.sleep(500);
+    await wait_for_text(view, "Se connecter avec ProConnect");
     await click_text(view, "Se connecter avec ProConnect");
-    await Bun.sleep(1000);
+    await wait_for_text(view, "Votre compte");
 
     await click_text(view, "Se déconnecter");
-    await Bun.sleep(500);
 
-    const body = await page_text(view);
-    expect(body).toContain("Bienvenue chez le Dr. ProConnect");
+    const body = await wait_for_text(view, "Bienvenue chez le Dr. ProConnect");
     expect(body).not.toContain("Votre compte");
   }, 30_000);
 });
