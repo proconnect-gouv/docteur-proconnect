@@ -110,9 +110,16 @@ const handle_callback = async (
 
   const provider_config = await get_provider_config(config);
 
+  // Behind Scalingo's TLS-terminating proxy req.url is http:// — rebuild the
+  // callback URL on the public HOST so the redirect_uri sent to the token
+  // endpoint matches the one sent to the authorization endpoint.
+  const callback_url = new URL(
+    `${config.HOST}${config.CALLBACK_URL}${current_url.search}`,
+  );
+
   const tokens = await client.authorizationCodeGrant(
     provider_config,
-    current_url,
+    callback_url,
     {
       expectedNonce: session.data.nonce,
       expectedState: session.data.state,

@@ -265,6 +265,18 @@ export function create_dev_oidc_handler(): (
       if (!pending) return json({ error: "invalid_grant" }, 400);
       pending_codes.delete(code);
 
+      // Like the real PCF: the token request's redirect_uri must match the
+      // one sent to the authorization endpoint.
+      if (params.get("redirect_uri") !== pending.redirect_uri) {
+        return json(
+          {
+            error: "invalid_grant",
+            error_description: "grant request is invalid",
+          },
+          400,
+        );
+      }
+
       const { flow_type } = pending;
       const fixture = get_fixture(flow_type);
       const now = Math.floor(Date.now() / 1000);
