@@ -3,8 +3,16 @@ import { render_layout } from "./layout";
 type Userinfo = Record<string, unknown>;
 type IdTokenClaims = Record<string, unknown>;
 
+const escape_html = (s: string): string =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const optional = (value: unknown, fallback = "Non renseigné"): string =>
-  value != null ? String(value) : `<em>${fallback}</em>`;
+  value != null ? escape_html(String(value)) : `<em>${fallback}</em>`;
 
 const format_date = (unix: unknown): string => {
   if (typeof unix !== "number") return "<em>—</em>";
@@ -122,10 +130,10 @@ const render_logged_in = (
               <li>Prénom : <strong>${optional(userinfo.given_name)}</strong></li>
               <li>Email : <strong>${optional(userinfo.email)}</strong></li>
               <li>Profession : <strong>${optional(userinfo.job, "Non renseignée")}</strong></li>
-              <li>Rôles : <strong>${Array.isArray(roles) ? roles.join(", ") : optional(undefined)}</strong></li>
+              <li>Rôles : <strong>${Array.isArray(roles) ? roles.map((r) => escape_html(String(r))).join(", ") : optional(undefined)}</strong></li>
               <li>Connexion établie le <strong>${format_date(idtoken.iat)}</strong></li>
               <li>Date d'expiration de la connexion le <strong>${format_date(idtoken.exp)}</strong></li>
-              <li>Type de connexion : <strong>${Array.isArray(amr) ? amr.join(", ") : optional(undefined, "Non renseignée")}</strong></li>
+              <li>Type de connexion : <strong>${Array.isArray(amr) ? amr.map((a) => escape_html(String(a))).join(", ") : optional(undefined, "Non renseignée")}</strong></li>
               <li>Classe de contexte d'authentification : <strong>${optional(idtoken.acr)}</strong></li>
             </ul>
           </div>
