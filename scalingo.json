@@ -4,5 +4,13 @@
     {
       "url": "https://github.com/proconnect-gouv/bun-buildpack"
     }
-  ]
+  ],
+  "env": {
+    "PC_CLIENT_SECRET": {
+      "generator": "secret"
+    },
+    "SESSION_SECRET": {
+      "generator": "secret"
+    }
+  }
 }
