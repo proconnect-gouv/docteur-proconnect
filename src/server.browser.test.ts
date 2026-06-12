@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { parse_config } from "./config";
 import { create_server } from "./server";
 import { create_session_store } from "./session";
@@ -44,13 +44,17 @@ const click_proconnect_near = async (view: Bun.WebView, section_text: string) =>
       ?.click()`,
   );
 
-beforeAll(() => {
+// Fresh store + server per test: in CI, Chrome can reuse a still-running
+// instance and leak cookies across WebViews despite the fresh profile above.
+// A new store does not know the leaked session ID, so the test starts
+// logged out no matter what the browser sends.
+beforeEach(() => {
   const session_store = create_session_store(config.SESSION_SECRET);
   server = create_server(config.PORT, session_store, config);
 });
 
-afterAll(() => {
-  server.stop();
+afterEach(async () => {
+  await server.stop(true);
 });
 
 const base_url = `http://localhost:${config.PORT}`;
