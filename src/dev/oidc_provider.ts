@@ -172,23 +172,26 @@ export function create_dev_oidc_handler(): (
           "client_secret_post",
           "client_secret_basic",
         ],
+        // Subset of the real PCF discovery document:
+        // https://federation.proconnect.gouv.fr/api/v2/.well-known/openid-configuration
+        // Note: the "phone" scope delivers the "phone_number" claim.
         claims_supported: [
           "sub",
-          "given_name",
-          "usual_name",
-          "email",
-          "phone",
+          "amr",
           "uid",
+          "given_name",
+          "email",
+          "phone_number",
           "siren",
           "siret",
+          "usual_name",
           "idp_id",
-          "custom",
           "roles",
           "organization_label",
+          "custom",
           "acr",
-          "amr",
           "auth_time",
-          "nonce",
+          "iss",
         ],
       });
     }
