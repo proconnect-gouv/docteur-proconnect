@@ -115,14 +115,20 @@
   background-color: #adadf9 !important; /* Bleu France */
 }
 
-/* Sticky footer: main stretches so the footer sits at the bottom of the
-   viewport even on short pages (no magic header/footer pixel heights). */
-body {
+/* Cowboy shot: the page is the subject (header = head, footer = feet) and
+   the first viewport frames it mid-thigh — header + main share exactly one
+   viewport, whatever the header height, and the footer stays out of frame
+   until you scroll. Short content is centered vertically in main. */
+.pc-cowboy-shot {
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
 main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
