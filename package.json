@@ -11,33 +11,38 @@
     "url": "git+https://github.com/numerique-gouv/docteur-proconnect.git"
   },
   "license": "AGPL-3.0",
-  "author": "",
+  "author": "ProConnect Team",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "dev": "tsx --watch .",
-    "start": "tsx .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'no build step'",
+    "dev": "bun --watch src/main.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "start": "bun src/main.ts",
+    "test": "bun test",
+    "test:unit": "bun test --testPathPattern='(?<!browser)\\.test\\.ts$'",
+    "test:browser": "bun test --testPathPattern='\\.browser\\.test\\.ts$'",
+    "typecheck": "tsc --noEmit"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-organize-imports"
+    ]
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "1.0.10",
+    "@types/bun": "1.3.14",
+    "prettier": "3.8.4",
+    "prettier-plugin-organize-imports": "4.3.0",
+    "typescript": "6.0.3"
+  },
+  "packageManager": "bun@1.3.14",
+  "engines": {
+    "bun": "1.3.14"
   },
   "dependencies": {
     "@gouvfr/dsfr": "1.14.4",
-    "dotenv-flow": "4.1.0",
-    "ejs": "6.0.1",
-    "express": "5.2.1",
-    "express-ejs-layouts": "2.5.1",
-    "express-session": "1.19.0",
-    "lodash-es": "4.18.1",
-    "morgan": "1.11.0",
     "openid-client": "6.8.4",
-    "tsx": "4.22.4",
     "zod": "4.4.3"
-  },
-  "devDependencies": {
-    "prettier": "3.8.4"
-  },
-  "packageManager": "npm@11.6.2+sha512.ee22b335fcbc95662cdf3ab8a053daf045d9cf9c6df6040d28965abb707512b2c16fa6c5eec049d34c74f78f390cebd14f697919eadb97756564d4f9eccc4954",
-  "engines": {
-    "node": "24",
-    "npm": ">=11"
   }
 }

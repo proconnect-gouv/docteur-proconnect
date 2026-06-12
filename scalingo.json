@@ -1,0 +1,20 @@
+{
+  "stack": "scalingo-26",
+  "buildpacks": [
+    {
+      "url": "https://github.com/proconnect-gouv/bun-buildpack"
+    }
+  ],
+  "env": {
+    "HOST": {
+      "generator": "url",
+      "template": "%URL%"
+    },
+    "PC_CLIENT_SECRET": {
+      "generator": "secret"
+    },
+    "SESSION_SECRET": {
+      "generator": "secret"
+    }
+  }
+}
