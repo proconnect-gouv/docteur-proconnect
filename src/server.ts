@@ -35,6 +35,18 @@ const get_provider_config = (config: AppConfig) => {
   );
 };
 
+// Log an error with its full cause chain — oauth4webapi attaches the
+// offending response/params as error.cause, which is where the actual
+// diagnosis usually lives.
+const log_error = (context: string, error: unknown): void => {
+  console.error(`[${context}]`, error);
+  let cause = error instanceof Error ? error.cause : undefined;
+  while (cause !== undefined) {
+    console.error(`[${context}] caused by:`, cause);
+    cause = cause instanceof Error ? cause.cause : undefined;
+  }
+};
+
 // sessionId binding is not yet implemented in Bun 1.3.14 — encode session_id
 // into the secret directly so tokens are not reusable across sessions.
 const csrf_secret = (secret: string, session_id: string) =>
@@ -61,9 +73,17 @@ const make_login_handler = (
   return async (req: Request): Promise<Response> => {
     // Session is created at GET / so the CSRF token is already bound to it.
     const session = await session_store.get(req);
-    if (!session) return new Response("Session manquante", { status: 403 });
+    if (!session) {
+      console.error(
+        "[login] no session on login POST — cookie missing or unknown",
+      );
+      return new Response("Session manquante", { status: 403 });
+    }
 
     if (!(await verify_csrf(req, config.SESSION_SECRET, session.session_id))) {
+      console.error(
+        `[login] invalid CSRF token for session ${session.session_id}`,
+      );
       return new Response("Token CSRF invalide", { status: 403 });
     }
 
@@ -98,11 +118,19 @@ const handle_callback = async (
   session_store: SessionStore,
 ): Promise<Response> => {
   const session = await session_store.get(req);
-  if (!session) return new Response("Session not found", { status: 400 });
+  if (!session) {
+    console.error(
+      "[login-callback] no session on callback — cookie missing, unknown, or store wiped by a restart",
+    );
+    return new Response("Session not found", { status: 400 });
+  }
 
   // Replayed callback (refresh/back button): the state was already consumed
   // by a previous pass — send the user home instead of failing the grant.
   if (!session.data.state) {
+    console.error(
+      `[login-callback] replayed callback for session ${session.session_id} — no pending state, redirecting home`,
+    );
     return new Response(null, { status: 302, headers: { Location: "/" } });
   }
 
@@ -159,6 +187,9 @@ const handle_logout = async (
     return new Response(null, { status: 302, headers: { Location: "/" } });
 
   if (!(await verify_csrf(req, config.SESSION_SECRET, session.session_id))) {
+    console.error(
+      `[logout] invalid CSRF token for session ${session.session_id}`,
+    );
     return new Response("Token CSRF invalide", { status: 403 });
   }
 
@@ -192,6 +223,10 @@ export function create_server(
 ) {
   return Bun.serve({
     port,
+    error(error) {
+      log_error("server", error);
+      return new Response("Something went wrong!", { status: 500 });
+    },
     routes: {
       "/": async (req) => {
         let session = await session_store.get(req);
