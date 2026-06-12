@@ -100,6 +100,12 @@ const handle_callback = async (
   const session = await session_store.get(req);
   if (!session) return new Response("Session not found", { status: 400 });
 
+  // Replayed callback (refresh/back button): the state was already consumed
+  // by a previous pass — send the user home instead of failing the grant.
+  if (!session.data.state) {
+    return new Response(null, { status: 302, headers: { Location: "/" } });
+  }
+
   const current_url = new URL(req.url);
   if (current_url.searchParams.get("error")) {
     throw new client.AuthorizationResponseError(
