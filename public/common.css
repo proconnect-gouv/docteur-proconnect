@@ -114,3 +114,15 @@
 .tag-active {
   background-color: #adadf9 !important; /* Bleu France */
 }
+
+/* Sticky footer: main stretches so the footer sits at the bottom of the
+   viewport even on short pages (no magic header/footer pixel heights). */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
