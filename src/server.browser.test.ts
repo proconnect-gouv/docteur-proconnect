@@ -109,6 +109,15 @@ describe("Page d'accueil", () => {
 
     await page_text(view, "S'identifier avec ProConnect");
   }, 30_000);
+
+  it("affiche une page d'erreur 404 sur les pages inconnues", async () => {
+    await using view = new Bun.WebView(make_web_view_options());
+    await view.navigate(`${base_url}/nulle-part`);
+
+    const body = await page_text(view, "Page non trouvée");
+    expect(body).toContain("Erreur 404");
+    expect(body).toContain("Retour à l'accueil");
+  }, 30_000);
 });
 
 describe("Connexion avec ProConnect", () => {

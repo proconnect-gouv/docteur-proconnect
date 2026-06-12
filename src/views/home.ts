@@ -1,15 +1,7 @@
-import { render_layout } from "./layout";
+import { escape_html, render_layout } from "./layout";
 
 type Userinfo = Record<string, unknown>;
 type IdTokenClaims = Record<string, unknown>;
-
-const escape_html = (s: string): string =>
-  s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 
 const optional = (value: unknown, fallback = "Non renseigné"): string =>
   value != null ? escape_html(String(value)) : `<em>${fallback}</em>`;

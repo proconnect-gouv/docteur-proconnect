@@ -2,6 +2,7 @@ import * as client from "openid-client";
 import type { AppConfig } from "./config";
 import { create_dev_oidc_handler } from "./dev/oidc_provider";
 import type { SessionStore } from "./session";
+import { render_error } from "./views/error";
 import { render_home } from "./views/home";
 
 const root = import.meta.dir + "/..";
@@ -47,6 +48,17 @@ const log_error = (context: string, error: unknown): void => {
   }
 };
 
+const error_response = (
+  status: number,
+  title: string,
+  message: string,
+  pictogram?: string,
+): Response =>
+  new Response(render_error(status, title, message, pictogram), {
+    status,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+
 // sessionId binding is not yet implemented in Bun 1.3.14 — encode session_id
 // into the secret directly so tokens are not reusable across sessions.
 const csrf_secret = (secret: string, session_id: string) =>
@@ -77,14 +89,22 @@ const make_login_handler = (
       console.error(
         "[login] no session on login POST — cookie missing or unknown",
       );
-      return new Response("Session manquante", { status: 403 });
+      return error_response(
+        403,
+        "Session manquante",
+        "Votre session a expiré ou votre navigateur bloque les cookies.",
+      );
     }
 
     if (!(await verify_csrf(req, config.SESSION_SECRET, session.session_id))) {
       console.error(
         `[login] invalid CSRF token for session ${session.session_id}`,
       );
-      return new Response("Token CSRF invalide", { status: 403 });
+      return error_response(
+        403,
+        "Session expirée",
+        "Le formulaire n'est plus valide, veuillez réessayer.",
+      );
     }
 
     const provider_config = await get_provider_config(config);
@@ -122,7 +142,11 @@ const handle_callback = async (
     console.error(
       "[login-callback] no session on callback — cookie missing, unknown, or store wiped by a restart",
     );
-    return new Response("Session not found", { status: 400 });
+    return error_response(
+      400,
+      "Session introuvable",
+      "Votre session a expiré pendant la connexion, veuillez réessayer.",
+    );
   }
 
   // Replayed callback (refresh/back button): the state was already consumed
@@ -190,7 +214,11 @@ const handle_logout = async (
     console.error(
       `[logout] invalid CSRF token for session ${session.session_id}`,
     );
-    return new Response("Token CSRF invalide", { status: 403 });
+    return error_response(
+      403,
+      "Session expirée",
+      "Le formulaire n'est plus valide, veuillez réessayer.",
+    );
   }
 
   const id_token_hint = session.data.id_token_hint;
@@ -225,7 +253,12 @@ export function create_server(
     port,
     error(error) {
       log_error("server", error);
-      return new Response("Something went wrong!", { status: 500 });
+      return error_response(
+        500,
+        "Erreur inattendue",
+        "Essayez de rafraîchir la page ou bien réessayez plus tard.",
+        "/dsfr/artwork/pictograms/system/connection-lost.svg",
+      );
     },
     routes: {
       "/": async (req) => {
@@ -325,7 +358,11 @@ export function create_server(
         );
       }
 
-      return new Response("Not Found", { status: 404 });
+      return error_response(
+        404,
+        "Page non trouvée",
+        "La page que vous cherchez est introuvable.",
+      );
     },
   });
 }

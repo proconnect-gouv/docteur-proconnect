@@ -1,3 +1,11 @@
+export const escape_html = (s: string): string =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 export function render_layout(title: string, content: string): string {
   return `<!doctype html>
 <html lang="fr-FR">
