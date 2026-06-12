@@ -6,6 +6,10 @@
     }
   ],
   "env": {
+    "HOST": {
+      "generator": "url",
+      "template": "%URL%"
+    },
     "PC_CLIENT_SECRET": {
       "generator": "secret"
     },
