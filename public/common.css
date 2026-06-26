@@ -132,3 +132,14 @@ main {
   flex-direction: column;
   justify-content: center;
 }
+
+.fr-table .fr-link {
+  white-space: nowrap;
+}
+
+.fr-table .proconnect-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}

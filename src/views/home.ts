@@ -11,24 +11,23 @@ const format_date = (unix: unknown): string => {
   return `<time datetime="${unix}">${new Date(unix * 1000).toLocaleString("fr-FR")}</time>`;
 };
 
-const proconnect_button = (action: string, csrf_token: string): string => `
-  <div class="fr-consent-placeholder" style="background: var(--grey-1000-50)">
-    <form action="${action}" method="post">
-      <input type="hidden" name="_csrf" value="${csrf_token}" />
-      <button class="proconnect-button">
-        <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
-      </button>
-    </form>
-    <p>
-      <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre">
-        Qu'est-ce que ProConnect ?
-      </a>
-    </p>
-  </div>`;
+const proconnect_button_compact = (
+  action: string,
+  csrf_token: string,
+): string => `
+  <form action="${action}" method="post" class="proconnect-form">
+    <input type="hidden" name="_csrf" value="${csrf_token}" />
+    <button class="proconnect-button">
+      <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
+    </button>
+    <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre" class="fr-link fr-text--sm">
+      Qu'est-ce que ProConnect ?
+    </a>
+  </form>`;
 
 const render_logged_out = (csrf_token: string): string => `
-  <div class="fr-container fr-py-9v fr-my-32v">
-    <div class="fr-grid-row fr-grid-row--middle">
+  <div class="fr-container fr-py-4v fr-my-5v">
+    <div class="fr-grid-row fr-grid-row--middle fr-mb-6w">
       <div class="fr-col-sm-12 fr-col-md-5">
         <img
           alt="Welcome Page Logo"
@@ -49,51 +48,39 @@ const render_logged_out = (csrf_token: string): string => `
       </div>
     </div>
 
-    <div class="fr-grid-row fr-grid-row--middle fr-py-9v fr-my-32v">
-      <div class="fr-col-sm-12 fr-col-md-6">
-        <div class="fr-my-2w fr-mx-5w">
-          <h6 class="fr-h6" id="standard">Connexion standard</h6>
-          <p>Pour suivre vos connexions avec le niveau de sécurité standard.<br /></p>
+    <div class="fr-table fr-table--bordered fr-table--no-scroll" id="table-connexion-component">
+      <div class="fr-table__wrapper">
+        <div class="fr-table__container">
+          <div class="fr-table__content">
+            <table id="table-connexion">
+              <caption>Choisissez votre type de connexion</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Type de connexion</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="table-connexion-row-key-1" data-row-key="1">
+                  <td><strong>Connexion standard</strong></td>
+                  <td>Pour suivre vos connexions avec le niveau de sécurité standard.</td>
+                  <td>${proconnect_button_compact("/login", csrf_token)}</td>
+                </tr>
+                <tr id="table-connexion-row-key-2" data-row-key="2">
+                  <td><strong>Connexion double authentification (2FA)</strong></td>
+                  <td>En plus de votre mot de passe et de la vérification de l'adresse email, nous vous demanderons un code à usage unique ou une clé spécifique.</td>
+                  <td>${proconnect_button_compact("/force-2fa", csrf_token)}</td>
+                </tr>
+                <tr id="table-connexion-row-key-3" data-row-key="3">
+                  <td><strong>Connexion avec certification dirigeant</strong></td>
+                  <td>En plus de votre mot de passe et de la vérification de l'adresse email, nous vous demanderons de prouver le statut de dirigeant au sein de l'organisation sélectionnée.</td>
+                  <td>${proconnect_button_compact("/force-certification-dirigeant", csrf_token)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
-      <div class="fr-col-sm-12 fr-col-md-6">
-        ${proconnect_button("/login", csrf_token)}
-      </div>
-    </div>
-
-    <div class="fr-grid-row fr-grid-row--middle fr-py-9v fr-my-32v">
-      <div class="fr-col-sm-12 fr-col-md-6">
-        <div class="fr-my-2w fr-mx-5w">
-          <h6 class="fr-h6" id="double-authentification">
-            Connexion double authentification (2FA)
-          </h6>
-          <p>
-            En plus de votre mot de passe et de la vérification de l'adresse
-            email, nous vous demanderons un code à usage unique ou une clé
-            spécifique.
-          </p>
-        </div>
-      </div>
-      <div class="fr-col-sm-12 fr-col-md-6">
-        ${proconnect_button("/force-2fa", csrf_token)}
-      </div>
-    </div>
-
-    <div class="fr-grid-row fr-grid-row--middle fr-py-9v fr-my-32v">
-      <div class="fr-col-sm-12 fr-col-md-6">
-        <div class="fr-my-2w fr-mx-5w">
-          <h6 class="fr-h6" id="certification-dirigeant">
-            Connexion avec certification dirigeant
-          </h6>
-          <p>
-            En plus de votre mot de passe et de la vérification de l'adresse
-            email, nous vous demanderons de prouver le statut de dirigeant au
-            sein de l'organisation sélectionnée.
-          </p>
-        </div>
-      </div>
-      <div class="fr-col-sm-12 fr-col-md-6">
-        ${proconnect_button("/force-certification-dirigeant", csrf_token)}
       </div>
     </div>
   </div>
@@ -108,7 +95,7 @@ const render_logged_in = (
   const amr = idtoken.amr;
 
   return `
-  <div class="fr-container fr-py-9v fr-my-32v">
+  <div class="fr-container fr-py-4v fr-my-5v">
     <h1>Votre compte</h1>
     <div class="fr-grid-row fr-grid-row--gutters">
       <div class="fr-col-12 fr-col-lg-6">
