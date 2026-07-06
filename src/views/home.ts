@@ -106,6 +106,7 @@ const render_logged_in = (
 ): string => {
   const roles = userinfo.roles;
   const amr = idtoken.amr;
+  const custom = userinfo.custom;
 
   return `
   <div class="fr-container fr-py-9v fr-my-32v">
@@ -143,6 +144,16 @@ const render_logged_in = (
           </div>
         </div>
       </div>
+      <div class="fr-col-12 fr-col-lg-6">
+      <div class="fr-basic-card">
+        <div class="fr-col">
+          <h3>Données personnalisées</h3>
+          <ul>
+            <li class="fr-pb-0">Custom : <pre class="fr-mb-0 fr-mt-2w"><strong>${escape_html(JSON.stringify(custom, null, 2))}</strong></pre></li>
+          </ul>
+        </div>
+      </div>
+    </div>
     </div>
     <div class="fr-mt-4w">
       <form action="/logout" method="post" style="display:inline">
