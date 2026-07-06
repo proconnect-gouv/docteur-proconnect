@@ -52,9 +52,8 @@ const click_text = async (view: Bun.WebView, text: string) =>
 // Used when multiple "S'identifier avec ProConnect" buttons appear on the same page.
 const click_proconnect_near = async (view: Bun.WebView, section_text: string) =>
   view.evaluate(
-    `[...document.querySelectorAll('h6')]
-      .find(h => h.textContent.includes(${JSON.stringify(section_text)}))
-      ?.closest('.fr-grid-row')
+    `[...document.querySelectorAll('#table-connexion tbody tr')]
+      .find(tr => tr.textContent.includes(${JSON.stringify(section_text)}))
       ?.querySelector('button')
       ?.click()`,
   );
