@@ -37,7 +37,11 @@ const TEST_USER_CERTIFICATION_DIRIGEANT = {
   organization_label: "Societe de test du dirigeant (SASU)",
 };
 
-type FlowType = "standard" | "force_2fa" | "certification_dirigeant";
+type FlowType =
+  | "standard"
+  | "force_2fa"
+  | "certification_dirigeant"
+  | "login_full_acr";
 
 type PendingAuth = {
   nonce: string;
@@ -46,7 +50,16 @@ type PendingAuth = {
   client_id: string;
   flow_type: FlowType;
 };
-
+const get_flow_type = (login_type: string | null): FlowType => {
+  switch (login_type) {
+    case "certification_dirigeant":
+    case "force_2fa":
+    case "login_full_acr":
+      return login_type;
+    default:
+      return "standard";
+  }
+};
 const pending_codes = new Map<string, PendingAuth>();
 const access_tokens = new Map<
   string,
@@ -58,12 +71,17 @@ const get_fixture = (flow_type: FlowType) =>
     ? TEST_USER_CERTIFICATION_DIRIGEANT
     : TEST_USER_STANDARD;
 
-const get_acr = (flow_type: FlowType) => {
-  if (flow_type === "certification_dirigeant")
-    return "https://proconnect.gouv.fr/assurance/certification-dirigeant";
-  if (flow_type === "force_2fa")
-    return "https://proconnect.gouv.fr/assurance/self-asserted-2fa";
-  return "https://proconnect.gouv.fr/assurance/consistency-checked-2fa";
+const get_acr = (flow_type: FlowType): string => {
+  switch (flow_type) {
+    case "certification_dirigeant":
+      return "https://proconnect.gouv.fr/assurance/certification-dirigeant";
+    case "force_2fa":
+      return "https://proconnect.gouv.fr/assurance/self-asserted-2fa";
+    case "login_full_acr":
+      return "eidas1-mfa";
+    case "standard":
+      return "https://proconnect.gouv.fr/assurance/consistency-checked-2fa";
+  }
 };
 
 let _key_pair: CryptoKeyPair | null = null;
@@ -214,12 +232,7 @@ export function create_dev_oidc_handler(): (
       const redirect_uri = url.searchParams.get("redirect_uri") ?? "";
       const client_id = url.searchParams.get("client_id") ?? "";
       const login_type = url.searchParams.get("login_type");
-      const flow_type: FlowType =
-        login_type === "certification_dirigeant"
-          ? "certification_dirigeant"
-          : login_type === "force_2fa"
-            ? "force_2fa"
-            : "standard";
+      const flow_type = get_flow_type(login_type);
 
       const code = crypto.randomUUID();
       pending_codes.set(code, {
