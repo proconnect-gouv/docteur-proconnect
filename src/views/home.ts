@@ -20,9 +20,6 @@ const proconnect_button_compact = (
     <button class="proconnect-button">
       <span class="proconnect-sr-only">S'identifier avec ProConnect</span>
     </button>
-    <a href="https://www.proconnect.gouv.fr/" target="_blank" rel="noopener noreferrer" title="Qu'est-ce que ProConnect ? - nouvelle fenêtre" class="fr-link fr-text--sm">
-      Qu'est-ce que ProConnect ?
-    </a>
   </form>`;
 
 const render_logged_out = (csrf_token: string): string => `
@@ -62,20 +59,25 @@ const render_logged_out = (csrf_token: string): string => `
                 </tr>
               </thead>
               <tbody>
-                <tr id="table-connexion-row-key-1" data-row-key="1">
+                <tr>
                   <td><strong>Connexion standard</strong></td>
                   <td>Pour suivre vos connexions avec le niveau de sécurité standard.</td>
                   <td>${proconnect_button_compact("/login", csrf_token)}</td>
                 </tr>
-                <tr id="table-connexion-row-key-2" data-row-key="2">
+                <tr>
                   <td><strong>Connexion double authentification (2FA)</strong></td>
                   <td>En plus de votre mot de passe et de la vérification de l'adresse email, nous vous demanderons un code à usage unique ou une clé spécifique.</td>
                   <td>${proconnect_button_compact("/force-2fa", csrf_token)}</td>
                 </tr>
-                <tr id="table-connexion-row-key-3" data-row-key="3">
+                <tr>
                   <td><strong>Connexion avec certification dirigeant</strong></td>
                   <td>En plus de votre mot de passe et de la vérification de l'adresse email, nous vous demanderons de prouver le statut de dirigeant au sein de l'organisation sélectionnée.</td>
                   <td>${proconnect_button_compact("/force-certification-dirigeant", csrf_token)}</td>
+                </tr>
+                <tr>
+                  <td><strong>Connexion - Implémentation Fournisseur d’Identité</strong></td>
+                  <td>Vous êtes un FI et vous voulez tester si votre implémentation est fonctionnelle.</td>
+                  <td>${proconnect_button_compact("/login-full-acr", csrf_token)}</td>
                 </tr>
               </tbody>
             </table>

@@ -335,6 +335,27 @@ export function create_server(
           },
         }),
       },
+      "/login-full-acr": {
+        POST: make_login_handler(config, session_store, {
+          login_type: "login_full_acr",
+          claims: {
+            id_token: {
+              amr: { essential: true },
+              acr: {
+                essential: true,
+                values: [
+                  config.ACR_VALUE_FOR_EIDAS0,
+                  config.ACR_VALUE_FOR_EIDAS0_MFA,
+                  config.ACR_VALUE_FOR_EIDAS1,
+                  config.ACR_VALUE_FOR_EIDAS1_MFA,
+                  config.ACR_VALUE_FOR_EIDAS2,
+                  config.ACR_VALUE_FOR_EIDAS3,
+                ],
+              },
+            },
+          },
+        }),
+      },
       "/login-callback": {
         GET: (req) => handle_callback(req, config, session_store),
       },

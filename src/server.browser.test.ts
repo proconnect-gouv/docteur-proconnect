@@ -102,6 +102,13 @@ describe("Page d'accueil", () => {
     await page_text(view, "Connexion avec certification dirigeant");
   }, 30_000);
 
+  it("propose une connexion pour tester une implémentation de Fournisseur d'Identité", async () => {
+    await using view = new Bun.WebView(make_web_view_options());
+    await view.navigate(base_url);
+
+    await page_text(view, "Connexion - Implémentation Fournisseur d’Identité");
+  }, 30_000);
+
   it("affiche le bouton S'identifier avec ProConnect", async () => {
     await using view = new Bun.WebView(make_web_view_options());
     await view.navigate(base_url);
@@ -175,6 +182,23 @@ describe("Connexion avec ProConnect", () => {
     expect(body).toContain(
       "https://proconnect.gouv.fr/assurance/certification-dirigeant",
     );
+  }, 30_000);
+
+  it("affiche les informations du compte après connexion avec implémentation FI", async () => {
+    await using view = new Bun.WebView(make_web_view_options());
+    await view.navigate(base_url);
+
+    await click_proconnect_near(view, "Implémentation Fournisseur d’Identité");
+    await page_text(view, "Se connecter avec ProConnect");
+    await click_text(view, "Se connecter avec ProConnect");
+
+    const body = await page_text(view, "Votre compte");
+    expect(body).toContain("DUBOIS Angela");
+    expect(body).toContain("hyyypertool@yopmail.com");
+    expect(body).toContain("13002526500013");
+    expect(body).toContain("agent_public");
+    expect(body).toContain("Direction interministerielle du numerique (DINUM)");
+    expect(body).toContain("eidas1-mfa");
   }, 30_000);
 
   it("permet de se déconnecter", async () => {

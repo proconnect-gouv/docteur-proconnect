@@ -4,6 +4,8 @@ const config_schema = z.object({
   ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA: z.string(),
   ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT: z.string(),
   ACR_VALUE_FOR_CONSISTENCY_CHECKED_2FA: z.string(),
+  ACR_VALUE_FOR_EIDAS0: z.string(),
+  ACR_VALUE_FOR_EIDAS1: z.string(),
   ACR_VALUE_FOR_EIDAS2: z.string(),
   ACR_VALUE_FOR_EIDAS3: z.string(),
   ACR_VALUE_FOR_SELF_ASSERTED_2FA: z.string(),
