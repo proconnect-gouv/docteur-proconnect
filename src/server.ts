@@ -9,6 +9,23 @@ const root = import.meta.dir + "/..";
 
 const is_dev = process.env.NODE_ENV !== "production";
 const dev_oidc = is_dev ? create_dev_oidc_handler() : null;
+const ACR_VALUES = {
+  EIDAS0: "eidas0",
+  EIDAS0_MFA: "eidas0-mfa",
+  EIDAS1: "eidas1",
+  EIDAS1_MFA: "eidas1-mfa",
+  EIDAS2: "eidas2",
+  EIDAS3: "eidas3",
+  SELF_ASSERTED_2FA: "https://proconnect.gouv.fr/assurance/self-asserted-2fa",
+  CONSISTENCY_CHECKED_2FA:
+    "https://proconnect.gouv.fr/assurance/consistency-checked-2fa",
+  CERTIFICATION_DIRIGEANT:
+    "https://proconnect.gouv.fr/assurance/certification-dirigeant",
+  CERTIFICATION_DIRIGEANT_2FA:
+    "https://proconnect.gouv.fr/assurance/certification-dirigeant-2fa",
+};
+
+const CALLBACK_URI = "/login-callback";
 
 const obj_to_url_params = (obj: Record<string, unknown>): URLSearchParams => {
   const entries: [string, string][] = [];
@@ -119,8 +136,9 @@ const make_login_handler = (
       obj_to_url_params({
         nonce,
         state,
-        redirect_uri: `${config.HOST}${config.CALLBACK_URL}`,
-        scope: config.PC_SCOPES,
+        redirect_uri: `${config.HOST}${CALLBACK_URI}`,
+        scope:
+          "openid given_name usual_name email phone uid siret idp_id custom roles organization_label",
         ...extra_params,
       }),
     );
@@ -172,7 +190,7 @@ const handle_callback = async (
   // callback URL on the public HOST so the redirect_uri sent to the token
   // endpoint matches the one sent to the authorization endpoint.
   const callback_url = new URL(
-    `${config.HOST}${config.CALLBACK_URL}${current_url.search}`,
+    `${config.HOST}${CALLBACK_URI}${current_url.search}`,
   );
 
   const tokens = await client.authorizationCodeGrant(
@@ -303,12 +321,12 @@ export function create_server(
               acr: {
                 essential: true,
                 values: [
-                  config.ACR_VALUE_FOR_EIDAS2,
-                  config.ACR_VALUE_FOR_EIDAS3,
-                  config.ACR_VALUE_FOR_SELF_ASSERTED_2FA,
-                  config.ACR_VALUE_FOR_CONSISTENCY_CHECKED_2FA,
-                  config.ACR_VALUE_FOR_EIDAS0_MFA,
-                  config.ACR_VALUE_FOR_EIDAS1_MFA,
+                  ACR_VALUES.EIDAS0_MFA,
+                  ACR_VALUES.EIDAS1_MFA,
+                  ACR_VALUES.EIDAS2,
+                  ACR_VALUES.EIDAS3,
+                  ACR_VALUES.CONSISTENCY_CHECKED_2FA,
+                  ACR_VALUES.SELF_ASSERTED_2FA,
                 ],
               },
               amr: null,
@@ -325,8 +343,8 @@ export function create_server(
               acr: {
                 essential: true,
                 values: [
-                  config.ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT,
-                  config.ACR_VALUE_FOR_CERTIFICATION_DIRIGEANT_2FA,
+                  ACR_VALUES.CERTIFICATION_DIRIGEANT,
+                  ACR_VALUES.CERTIFICATION_DIRIGEANT_2FA,
                 ],
               },
               amr: null,
@@ -344,19 +362,19 @@ export function create_server(
               acr: {
                 essential: true,
                 values: [
-                  config.ACR_VALUE_FOR_EIDAS0,
-                  config.ACR_VALUE_FOR_EIDAS0_MFA,
-                  config.ACR_VALUE_FOR_EIDAS1,
-                  config.ACR_VALUE_FOR_EIDAS1_MFA,
-                  config.ACR_VALUE_FOR_EIDAS2,
-                  config.ACR_VALUE_FOR_EIDAS3,
+                  ACR_VALUES.EIDAS0,
+                  ACR_VALUES.EIDAS0_MFA,
+                  ACR_VALUES.EIDAS1,
+                  ACR_VALUES.EIDAS1_MFA,
+                  ACR_VALUES.EIDAS2,
+                  ACR_VALUES.EIDAS3,
                 ],
               },
             },
           },
         }),
       },
-      "/login-callback": {
+      [CALLBACK_URI]: {
         GET: (req) => handle_callback(req, config, session_store),
       },
       "/logout": {
