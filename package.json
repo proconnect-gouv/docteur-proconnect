@@ -31,8 +31,8 @@
   },
   "devDependencies": {
     "@tsconfig/bun": "1.0.10",
-    "@types/bun": "1.3.14",
-    "prettier": "3.8.4",
+    "@types/bun": "1.4.0",
+    "prettier": "3.9.6",
     "prettier-plugin-organize-imports": "4.3.0",
     "typescript": "6.0.3"
   },
@@ -41,8 +41,8 @@
     "bun": "1.3.14"
   },
   "dependencies": {
-    "@gouvfr/dsfr": "1.14.4",
+    "@gouvfr/dsfr": "1.15.2",
     "openid-client": "6.8.4",
-    "zod": "4.4.3"
+    "zod": "4.5.4"
   }
 }
