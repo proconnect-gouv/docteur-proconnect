@@ -19,6 +19,7 @@ const TEST_USER_STANDARD = {
   },
   roles: ["agent_public", "agent_public_etat"],
   organization_label: "Direction interministerielle du numerique (DINUM)",
+  organizational_unit: "Departement numerique",
 };
 
 const TEST_USER_CERTIFICATION_DIRIGEANT = {
@@ -35,6 +36,7 @@ const TEST_USER_CERTIFICATION_DIRIGEANT = {
   },
   roles: [],
   organization_label: "Societe de test du dirigeant (SASU)",
+  organizational_unit: "Direction generale",
 };
 
 type FlowType =
@@ -207,6 +209,7 @@ export function create_dev_oidc_handler(): (
           "idp_id",
           "iss",
           "organization_label",
+          "organizational_unit",
           "phone_number",
           "roles",
           "siren",
