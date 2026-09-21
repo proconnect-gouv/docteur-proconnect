@@ -129,6 +129,7 @@ const render_logged_in = (
               <li>Nom de l'organisation : <strong>${optional(userinfo.organization_label)}</strong></li>
               <li>Numéro d'identification du fournisseur d'identité : <strong>${optional(userinfo.idp_id)}</strong></li>
               <li>SIRET : <strong>${optional(userinfo.siret)}</strong></li>
+              <li>Unité organisationnelle : <strong>${optional(userinfo.organizational_unit)}</strong></li>
             </ul>
           </div>
         </div>
