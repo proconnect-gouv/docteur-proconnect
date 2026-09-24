@@ -40,10 +40,7 @@ const TEST_USER_CERTIFICATION_DIRIGEANT = {
 };
 
 type FlowType =
-  | "standard"
-  | "force_2fa"
-  | "certification_dirigeant"
-  | "login_full_acr";
+  "certification_dirigeant" | "force_2fa" | "login_full_acr" | "standard";
 
 type PendingAuth = {
   nonce: string;
