@@ -139,7 +139,7 @@ const render_logged_in = (
         <div class="fr-col">
           <h3>Données personnalisées</h3>
           <ul>
-            <li class="fr-pb-0">Custom : <pre class="fr-mb-0 fr-mt-2w"><strong>${escape_html(JSON.stringify(custom, null, 2))}</strong></pre></li>
+            <li class="fr-pb-0">Custom : <pre class="fr-mb-0 fr-mt-2w"><strong>${escape_html(JSON.stringify(custom, null, 2) ?? "Non renseigné")}</strong></pre></li>
           </ul>
         </div>
       </div>
