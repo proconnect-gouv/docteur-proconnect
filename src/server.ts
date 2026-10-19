@@ -14,7 +14,7 @@ const obj_to_url_params = (obj: Record<string, unknown>): URLSearchParams => {
   const entries: [string, string][] = [];
   for (const [k, v] of Object.entries(obj)) {
     if (v == null) continue;
-    entries.push([k, typeof v === "object" ? JSON.stringify(v) : String(v)]);
+    entries.push([k, typeof v === "string" ? v : JSON.stringify(v)]);
   }
   return new URLSearchParams(entries);
 };

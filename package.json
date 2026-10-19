@@ -18,7 +18,7 @@
     "dev": "bun --watch src/main.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "oxlint --deny-warnings",
+    "lint": "oxlint --type-aware --deny-warnings",
     "start": "bun src/main.ts",
     "test": "bun test",
     "test:unit": "bun test --testPathPattern='(?<!browser)\\.test\\.ts$'",
@@ -34,6 +34,7 @@
     "@tsconfig/bun": "1.0.10",
     "@types/bun": "1.4.2",
     "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
     "prettier": "3.9.8",
     "prettier-plugin-organize-imports": "4.3.0",
     "typescript": "7.0.2"
