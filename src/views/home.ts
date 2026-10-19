@@ -4,7 +4,9 @@ type Userinfo = Record<string, unknown>;
 type IdTokenClaims = Record<string, unknown>;
 
 const optional = (value: unknown, fallback = "Non renseigné"): string =>
-  value != null ? escape_html(String(value)) : `<em>${fallback}</em>`;
+  value != null
+    ? escape_html(typeof value === "string" ? value : JSON.stringify(value))
+    : `<em>${fallback}</em>`;
 
 const format_date = (unix: unknown): string => {
   if (typeof unix !== "number") return "<em>—</em>";
