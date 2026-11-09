@@ -46,6 +46,6 @@
   "dependencies": {
     "@gouvfr/dsfr": "1.15.3",
     "openid-client": "6.8.4",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   }
 }
